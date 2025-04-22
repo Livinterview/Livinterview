@@ -1,16 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from './pages/LoginPage';
-import './App.css';
+import Home from "./pages/Home";
+import SurveyForm from "./pages/SurveyForm";
 
-const App: React.FC = () => {
+function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/survey" element={<SurveyForm />} />
       </Routes>
     </BrowserRouter>
   );
-};
+}
 
 export default App;
 
