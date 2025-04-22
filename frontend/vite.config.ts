@@ -29,7 +29,6 @@ export default defineConfig({
       },
     }),
   ],
-<<<<<<< HEAD
   server: {
     port: 5173,
     proxy: {
@@ -48,6 +47,4 @@ export default defineConfig({
       },
     },
   },
-=======
->>>>>>> 5fe17abc556a20be647971f21d8a3dacaa6fe739
 })
