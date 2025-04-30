@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
+<<<<<<< Updated upstream
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -23,6 +24,13 @@ const ErrorMessage = styled.p`
 
 const ProfilePage = () => {
   const [error, setError] = useState(null);
+=======
+export default function ProfilePage() {
+  const [email, setEmail] = useState<string>("")
+  const [name, setName] = useState<string>("")
+  const [provider, setProvider] = useState<string>("") // 로그인 플랫폼
+  const navigate = useNavigate()
+>>>>>>> Stashed changes
 
   useEffect(() => {
     const fetchUserInfo = async () => {
