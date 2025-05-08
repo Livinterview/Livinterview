@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { fetchQna } from "../api/fetchQna";
 import { Question } from "../types/question";
 import SurveyRenderer from "../components/SurveyRenderer";
@@ -24,7 +24,7 @@ function SurveyForm() {
 
   // 현재 질문 데이터
   const current = questions[index];
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   if (!current) {
     return (
@@ -35,34 +35,40 @@ function SurveyForm() {
   }
 
   // 다음 질문 or 완료 처리
-  const handleAnswer = (value: any) => {
-    // 유효성 체크 (range는 객체, 일반은 string/number)
-    if (
-      value === null ||
-      value === undefined ||
-      (typeof value !== "object" && value === "")
-    ) {
-      alert("답변을 선택해주세요!");
-      return;
-    }
+  // (1) handleAnswer를 async로 선언
+  const handleAnswer = async (value: any) => {
+    // --- 기존 유효성 검사, answers 저장 로직 동일 ---
 
-    // range (객체) 타입은 ...spread 저장, 그 외는 key:value 저장
-    setAnswers((prev) =>
+    // answers 업데이트
+    const updatedAnswers =
       typeof value === "object"
-        ? { ...prev, ...value }
-        : { ...prev, [current.sub_category]: value }
-    );
+        ? { ...answers, ...value }
+        : { ...answers, [current.sub_category]: value };
 
-    // 다음 질문 or 완료 처리
-    if (index < questions.length - 1) {
-      setIndex((i) => i + 1);
+    setAnswers(updatedAnswers);
+
+    // --- 마지막 문항일 때 API 호출 ---
+    if (index >= questions.length - 1) {
+      try {
+        const res = await fetch("http://localhost:8000/api/report", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ answers: updatedAnswers }),
+        });
+        if (!res.ok) throw new Error(`서버 에러: ${res.status}`);
+        const data = await res.json();
+        console.log("응답:", data);
+        // 필요하다면, 결과를 보여주거나 다른 페이지로 이동
+        // navigate("/thank-you");
+      } catch (err: any) {
+        console.error(err);
+        alert("서버에 데이터를 전송하는 중 오류가 발생했습니다.");
+      }
     } else {
-      const finalAnswer =
-        typeof value === "object"
-          ? { ...answers, ...value }
-          : { ...answers, [current.sub_category]: value };
-
-      navigate("/report", { state: { answers: finalAnswer } });
+      // 다음 질문으로
+      setIndex((i) => i + 1);
     }
   };
 
