@@ -143,6 +143,7 @@ class HomieHistory(Base):
     user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     user = relationship("User", back_populates="homie_histories")
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
     homie_qna_histories = relationship(
         "HomieQnAHistory", back_populates="homie_history"
     )
