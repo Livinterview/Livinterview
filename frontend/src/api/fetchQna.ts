@@ -1,7 +1,7 @@
 import { Question } from "../types/question";
 
 export async function fetchQna(): Promise<Question[]> {
-  const response = await fetch("http://localhost:8000/data/qna", {
+  const response = await fetch("http://localhost:8000/api/qna", {
     method: "GET",
     credentials: "include", // 세션 기반이라면 필요
   });
