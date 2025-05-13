@@ -2,7 +2,9 @@
   "dependencies": {
     "html2pdf.js": "^0.10.3",
     "axios": "^1.9.0",
-    "swiper": "^11.2.6"
-
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "swiper": "^11.2.6",
+    "uuid": "^11.1.0"
   }
 }

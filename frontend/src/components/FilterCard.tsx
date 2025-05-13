@@ -70,7 +70,6 @@ export default function FilterCard({ onFilterChange }: FilterCardProps) {
             value={depositRange}
             onChange={setDepositRange}
           />
-          {monthlyRange[0] !== monthlyRange[1] && (
             <RangeSlider
               label="월세"
               min={0}
@@ -80,7 +79,6 @@ export default function FilterCard({ onFilterChange }: FilterCardProps) {
               value={monthlyRange}
               onChange={setMonthlyRange}
             />
-          )}
         </>
       )}
 

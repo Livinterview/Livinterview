@@ -1,6 +1,6 @@
 import torch
-from segment_anything import SamPredictor, sam_model_registry
-from groundingdino.util.utils import get_phrases_from_posmap
+# from segment_anything import SamPredictor, sam_model_registry
+# from groundingdino.util.utils import get_phrases_from_posmap
 
 def build_sam(checkpoint: str, model_type="vit_h", device="cuda"):
     model = sam_model_registry[model_type](checkpoint=checkpoint)
