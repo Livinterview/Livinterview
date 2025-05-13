@@ -12,14 +12,12 @@ from routes.user import router as user_router
 from routes.chat import router as chat_router
 from routes.image_download import router as download_router
 from routes.structure_analyze import router as structure_router
-from routes.data import router as data_router
 from routes.create_map import router as map_router
 from routes.api import router as api_router
 
-# from routes.vision_analyze import router as vision_router
+from routes.vision_analyze import router as vision_router
 from routes.generate import router as generate_router
 from routes.cleaning import router as cleaning_router
-
 # from routes.roomie import router as roomie_router
 
 from dotenv import load_dotenv
@@ -59,12 +57,9 @@ app.include_router(structure_router, prefix="/vision")
 app.include_router(generate_router, tags=["Generate"])
 app.include_router(map_router, tags=["Map"])
 app.include_router(cleaning_router, prefix="/cleaning", tags=["Cleaning"])
-# app.include_router(roomie_router, prefix="/api", tags=["Roomie"])
+app.include_router(roomie_router, prefix="/api", tags=["Roomie"])
 
 # 정적 파일 서빙
 app.mount("/static", StaticFiles(directory="data"), name="static")
 app.mount("/data", StaticFiles(directory="data"), name="data")
 
-# DB URL 마스킹 출력
-safe_db_url = DB_URL.replace(DB_URL.split(":")[2].split("@")[0], "****")
-print(f"🟢 DB 연결 확인: {safe_db_url}")
