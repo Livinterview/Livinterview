@@ -9,7 +9,7 @@ import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-export default function RoomDetailModal({
+export default function RoomDetail({
   room,
   onClose,
 }: {

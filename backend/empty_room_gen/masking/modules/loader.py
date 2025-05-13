@@ -4,12 +4,12 @@ import os
 import torch
 from PIL import Image
 import torchvision.transforms as TS
-# import groundingdino.datasets.transforms as GD
-# from groundingdino.util.slconfig import SLConfig
-# from groundingdino.models import build_model
-# from groundingdino.util.utils import clean_state_dict
-# from segment_anything import sam_model_registry, SamPredictor
-# from empty_room_gen.masking.Tag2Text.inference_ram import ram as RAMModel
+import groundingdino.datasets.transforms as GD
+from groundingdino.util.slconfig import SLConfig
+from groundingdino.models import build_model
+from groundingdino.util.utils import clean_state_dict
+from segment_anything import sam_model_registry, SamPredictor
+from empty_room_gen.masking.Tag2Text.inference_ram import ram as RAMModel
 
 def load_image(image_path: str):
     image_pil = Image.open(image_path).convert("RGB")

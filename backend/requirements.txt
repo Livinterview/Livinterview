@@ -30,8 +30,8 @@ langchain-openai==0.3.15
 
 ########## ────────── 모델 추론 / 비전 파이프라인 ──────────
 # PyTorch & 기본 비전 스택
-# torch==2.3.0+cu118           # CU118 wheel 사용
-# torchvision==0.18.0+cu118
+torch==2.3.0+cu118           # CU118 wheel 사용
+torchvision==0.18.0+cu118
 timm==1.0.15                 # Swin-L 등 백본
 numpy==1.26.4
 opencv-python==4.11.0.86
@@ -45,9 +45,9 @@ huggingface-hub==0.30.2
 safetensors==0.5.3
 
 # Grounded-SAM 파이프라인
-# groundingdino-py==0.0.1      # PyPI 배포판 (또는 git 버전 주석 해제)
+groundingdino-py==0.0.1      # PyPI 배포판 (또는 git 버전 주석 해제)
 # Segment Anything
-# git+https://github.com/facebookresearch/segment-anything.git
+git+https://github.com/facebookresearch/segment-anything.git
 
 
 ####### ────────── 데이터 · 보조 유틸 ──────────
