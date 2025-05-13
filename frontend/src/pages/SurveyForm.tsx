@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchQna } from "../api/fetchQna";
 import { Question } from "../types/question";
 import SurveyRenderer from "../components/SurveyRenderer";
@@ -24,7 +24,7 @@ function SurveyForm() {
 
   // 현재 질문 데이터
   const current = questions[index];
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   if (!current) {
     return (
@@ -61,7 +61,7 @@ function SurveyForm() {
         const data = await res.json();
         console.log("응답:", data);
         // 필요하다면, 결과를 보여주거나 다른 페이지로 이동
-        // navigate("/thank-you");
+        navigate("/report", { state: { data } });
       } catch (err: any) {
         console.error(err);
         alert("서버에 데이터를 전송하는 중 오류가 발생했습니다.");
