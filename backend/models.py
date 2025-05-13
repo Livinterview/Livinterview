@@ -195,6 +195,9 @@ class HomieDong(Base):
     homie_dong_coefficients = relationship(
         "HomieDongCoefficient", back_populates="homie_dong"
     )
+    subway_adjacent_dong = relationship(
+        "SubwayAdjacentDong", back_populates="homie_dong"
+    )
 
     def __repr__(self):
         cols = [
@@ -291,7 +294,39 @@ class SeoulRoom(Base):
 class SubwayStation(Base):
     __tablename__ = "Subway_stations"
     id = Column(SmallInteger, primary_key=True, autoincrement=True)
-    name = Column(String(10), nullable=False)
+    name = Column(String(20), nullable=False)
+    line = Column(String(10), nullable=False)
+    lat = Column(DECIMAL(9, 6), nullable=False)
+    lon = Column(DECIMAL(9, 6), nullable=False)
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
+    subway_adjacent_dongs = relationship(
+        "SubwayAdjacentDong", back_populates="subway_station"
+    )
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+class SubwayAdjacentDong(Base):
+    __tablename__ = "Subway_adjacent_dongs"
+    id = Column(SmallInteger, primary_key=True, autoincrement=True)
+    subway_station_id = Column(
+        SmallInteger, ForeignKey("Subway_stations.id"), nullable=False
+    )
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
+    subway_station = relationship(
+        "SubwayStation", back_populates="subway_adjacent_dongs"
+    )
+    homie_dong = relationship("HomieDong", back_populates="subway_adjacent_dong")
 
     def __repr__(self):
         cols = [
