@@ -1,5 +1,5 @@
 import { useState } from "react"
-import MapView from "../components/MapView"
+import MapView from "../components/map/MapView"
 import RoomInfo from "../components/RoomInfo"
 import RoomDetail from "./RoomieDetail"
 import BottomTabBar from "../components/BottomTabBar"
