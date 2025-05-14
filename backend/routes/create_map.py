@@ -19,6 +19,15 @@ def create_map(full_location: str):
     except ValueError:
         raise HTTPException(status_code=400, detail="full_location은 '서울특별시 구이름 동이름' 형식이어야 합니다.")
 
+    # 저장 경로 먼저 정의
+    safe_name = dong_name.replace(" ", "_")  # 혹시 모를 공백 대비
+    output_path = f"C:/Users/user/Desktop/Livinterview/frontend/public/icons/report/all_report_view/map_image/{safe_name}_map.png"
+
+    # 이미지 파일이 이미 존재하면 바로 반환
+    if os.path.exists(output_path):
+        print(f"[캐시 사용] {output_path} 존재함 → 생성 생략")
+        return output_path
+
     # 한글 폰트 설정
     font_path = "C:/Windows/Fonts/malgun.ttf"
     font_prop = fm.FontProperties(fname=font_path).get_name()
@@ -56,7 +65,6 @@ def create_map(full_location: str):
     gu_filtered.plot(ax=ax, color=gu_filtered['fill'], edgecolor='black', linewidth=1)
 
     for _, row in gu_filtered.iterrows():
-        # 중심 좌표 대신 representative point 사용
         c = row.geometry.representative_point()
         ax.text(
             c.x, c.y, row['EMD_NM'],
@@ -70,11 +78,9 @@ def create_map(full_location: str):
     plt.axis('off')
     plt.tight_layout()
 
-    # 저장 경로
-    safe_name = dong_name.replace(" ", "_")  # 혹시 모를 공백 대비
-    output_path = f"C:/Users/user/Desktop/Livinterview/frontend/public/icons/report/all_report_view/map_image/{safe_name}_map.png"
+    # 저장 폴더 생성 및 저장
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    plt.savefig(output_path, dpi=300)
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', pad_inches=0.1)
 
     return output_path
 
