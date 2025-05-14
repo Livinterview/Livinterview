@@ -38,18 +38,17 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
         }}
       >
         {/* 🧑 사용자 이름 */}
-        <div style={{ position: "absolute", top: "205px", left: "470px", fontSize: "20px", fontWeight: "bold", fontFamily: "Pretendard-Regular" }}>
+        <div style={{ position: "absolute", top: "208px", left: "500px", fontSize: "20px", fontWeight: "bold", fontFamily: "Pretendard-Regular" }}>
           <span style={{
               color: "black",
             }}>{userName}</span> <span style={{ color: "#4c8689"  }}>님의 삶권분석</span>
         </div>
-        
 
         {/* 📌 중요 지표 리스트 */}
         <div
           style={{
             position: "absolute",
-            top: "295px",
+            top: "290px",
             left: "50px",
             display: "flex",
             alignItems: "center",
@@ -97,7 +96,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
                   crossOrigin="anonymous"
                   style={{
                     position: "absolute",
-                    top: "350px",
+                    top: "331px",
                     left: `${65 + idx * 240}px`,
                     width: "180px",
                     height: "180px",
@@ -107,8 +106,8 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
                 <div
                   style={{
                     position: "absolute",
-                    top: "538px",
-                    left: `${95 + idx * 240}px`,
+                    top: "524px",
+                    left: `${100 + idx * 240}px`,
                     fontSize: "24px",
                     fontWeight: "bold",
                     color: "white",
@@ -139,7 +138,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
             "집을 찾으실 때 다양한 부분들을 복합적으로 고려하시겠지만, 집 근처 대형 마트, 은행, 우체국 등의 시설이 집 근처에 있는지 중요하게 생각하시는 군요. 그 외 그 동네가 얼마나 안전한지, 경찰서는 집에서 얼마나 가까운 곳에 있는지, 집 근처 지하철 역의 위치 등이 집과 가까운지 등을 신경 쓰시는 스타일이시네요.",
             "실제 내가 살아보면 어떨까에 대해 생각하면서 여러 요소를 꼼꼼하게 확인하고 주거지를 고르는 당신을 위해 안전하면서도 편안함이 있는 오피스텔들을 찾아볼게요!",
           ].map((text, idx) => (
-            <div key={idx} style={{ display: "flex", marginBottom: "6px" }}>
+            <div key={idx} style={{ display: "flex", marginBottom: "5px" }}>
               <span style={{ color: "#0E6D62", fontWeight: "bold", marginRight: "8px" }}>●</span>
               <p style={{ margin: 0, padding: 0 }}>{text}</p>
             </div>

@@ -8,6 +8,7 @@ import ReportViewCover  from "./ReportViewCover";
 import ReportViewGuide  from "./ReportViewGuide";
 import ReportViewResult from "./ReportViewResult";
 import ReportViewInfo from "./ReportViewInfo";
+import ReportViewLast from "./ReportViewLast";
 
 export default function ReportView() {
   const location  = useLocation();
@@ -103,6 +104,7 @@ export default function ReportView() {
     "pdf-guide",
     "pdf-result",
     ...fullLocationList.map((_: string, idx: number) => `pdf-info-${idx}`),
+    "pdf-last"
     ];
 
     for (let i = 0; i < pages.length; i++) {
@@ -155,7 +157,8 @@ export default function ReportView() {
           topIndicators={topIndicators}
           mapReady={mapReady}
         />
-      ))}
+        ))}
+        <ReportViewLast />
       </div>
 
       {/* 결과로 돌아가기 */}
