@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -7,7 +7,7 @@ import html2canvas from "html2canvas";
 import ReportViewCover  from "./ReportViewCover";
 import ReportViewGuide  from "./ReportViewGuide";
 import ReportViewResult from "./ReportViewResult";
-import ReportViewInfo_1 from "./ReportViewInfo_1";
+import ReportViewInfo from "./ReportViewInfo";
 
 export default function ReportView() {
   const location  = useLocation();
@@ -37,56 +37,83 @@ export default function ReportView() {
       운동: 50,
     };
 
-  const dongName = location.state?.dongName || "구의동"; // 추천 동
-  const guName = location.state?.guName || "광진구"; 
-  const fullLocation = `서울특별시 ${guName} ${dongName}`;
+  // const dongName = location.state?.dongName || "구의동"; // 추천 동
+  // const guName = location.state?.guName || "광진구"; 
+  // const fullLocation = `서울특별시 ${guName} ${dongName}`;
+
+  const fullLocationList = location.state?.fullLocationList || [
+    "서울특별시 광진구 구의동",
+    "서울특별시 은평구 역촌동",
+    "서울특별시 송파구 잠실동"
+  ];
+
+  const dongNameList = fullLocationList.map((loc: string) => loc.split(" ")[2]);
+  const guNameList   = fullLocationList.map((loc: string) => loc.split(" ")[1]);
+
 
   const reportRef = useRef<HTMLDivElement>(null);
 
-   // 페이지 진입 시 자동 지도 생성 API 호출
-   useEffect(() => {
-    console.log("📦 fullLocation →", fullLocation);
-  
-    const generateMap = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/generate-map", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ full_location: fullLocation }),
-        });
-  
-        if (!res.ok) {
-          const error = await res.json();
-          console.error("❌ 지도 생성 실패:", error);
-          return;
+  // 이미지 생성이 모두 끝났는지 추적할 상태 추가
+  const [mapReady, setMapReady] = useState(false);
+
+  // ✅ (fullLocationList 각각에 대해 지도 생성)
+  useEffect(() => {
+    const generateAllMaps = async () => {
+      let successCount = 0; // 성공한 지도 개수 체크
+
+      for (const fullLocation of fullLocationList) {
+        try {
+          const res = await fetch("http://localhost:8000/generate-map", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ full_location: fullLocation }),
+          });
+
+          if (!res.ok) {
+            const error = await res.json();
+            console.error("❌ 지도 생성 실패:", fullLocation, error);
+            continue;
+          }
+
+          console.log("✅ 지도 생성 완료:", fullLocation);
+          successCount += 1; // 성공 시 카운트 증가
+        } catch (error) {
+          console.error("❌ 네트워크 오류:", fullLocation, error);
         }
-  
-        console.log("✅ 지도 이미지 생성 완료");
-      } catch (error) {
-        console.error("❌ 네트워크 오류:", error);
+      }
+
+      // 모든 지도가 성공적으로 처리되면 렌더링 시작
+      if (successCount === fullLocationList.length) {
+        setMapReady(true);
       }
     };
-  
-    generateMap();
-  }, [fullLocation]);
 
+    generateAllMaps();
+  }, [fullLocationList]);
 
 
   /* ★ PDF 다운로드 – 페이지별 캡처 방식 */
   const handleDownloadPDF = async () => {
-    const pdf   = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
-    const pages = ["pdf-cover", "pdf-guide", "pdf-result","pdf-info_1"];
+    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
+
+    const pages = [
+    "pdf-cover",
+    "pdf-guide",
+    "pdf-result",
+    ...fullLocationList.map((_: string, idx: number) => `pdf-info-${idx}`),
+    ];
 
     for (let i = 0; i < pages.length; i++) {
       const el = document.getElementById(pages[i]);
       if (!el) continue;
       if (i > 0) pdf.addPage();
 
-      await document.fonts.ready;              /* ★ 폰트 로딩 대기 */
-      await new Promise((res) => setTimeout(res, 100));
-      const canvas = await html2canvas(el, {   /* ★ scale 3 로 고해상도 캡처 */
+      await document.fonts.ready;
+      await new Promise((res) => setTimeout(res, 200));
+
+      const canvas = await html2canvas(el, {
         scale: 3,
         useCORS: true,
         backgroundColor: null,
@@ -117,12 +144,18 @@ export default function ReportView() {
           topIndicators={topIndicators}
           scores={scores}
         />
-        <ReportViewInfo_1
-          dongName={dongName}
-          fullLocation = {fullLocation}
+        {/* 추천 동네 3곳 반복 렌더링 */}
+        {fullLocationList.map((fullLocation: string, idx: number) => (
+        <ReportViewInfo
+          key={idx}
+          index={idx}
+          dongName={dongNameList[idx]}
+          fullLocation={fullLocation}
           userName={userName}
           topIndicators={topIndicators}
+          mapReady={mapReady}
         />
+      ))}
       </div>
 
       {/* 결과로 돌아가기 */}
