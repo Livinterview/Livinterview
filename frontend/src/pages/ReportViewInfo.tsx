@@ -1,5 +1,3 @@
-
-
 type ReportViewInfoProps = {
   dongName: string;
   fullLocation: string;
@@ -140,9 +138,9 @@ export default function ReportViewInfo({ dongName, fullLocation, userName, topIn
         <div
           style={{
             position: "absolute",
-            top: "935px",
+            top: "950px",
             left: "180px",
-            fontSize: "12.5px",
+            fontSize: "13px",
             lineHeight: "1.4",
             width: "565px",
             fontFamily: "Pretendard-Regular",
