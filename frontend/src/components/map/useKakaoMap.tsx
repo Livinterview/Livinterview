@@ -33,7 +33,7 @@ export function useKakaoMap(
       const clusterer = new window.kakao.maps.MarkerClusterer({
         map,
         averageCenter: true,
-        minLevel: 6,
+        minLevel: 2,
         gridSize: 60,
         styles: [
           {
