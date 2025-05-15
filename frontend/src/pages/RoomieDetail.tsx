@@ -19,6 +19,8 @@ export default function RoomDetail({
 }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // ✅ 모달 이미지 상태
+  const [currentIndex, setCurrentIndex] = useState(0); //현재 보고 있는 이미지를 챗봇으로 보내기
 
   if (loading) {
     return (
@@ -27,8 +29,7 @@ export default function RoomDetail({
       </div>
     );
   }
-  const [selectedImage, setSelectedImage] = useState<string | null>(null); // ✅ 모달 이미지 상태
-  const [currentIndex, setCurrentIndex] = useState(0); //현재 보고 있는 이미지를 챗봇으로 보내기
+  
   const handleCloseImageModal = () => {
     console.log("Closing image modal");
     setSelectedImage(null);
