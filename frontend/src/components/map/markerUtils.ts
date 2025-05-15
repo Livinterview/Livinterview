@@ -23,7 +23,6 @@ export function createCustomMarkerImage(kakao: any) {
 }
 
 export function calculateGridSize(zoomLevel: number) {
-  const baseGridSize = 60;
   const minZoom = 1;
   const maxZoom = 6;
   const zoomRange = maxZoom - minZoom;
