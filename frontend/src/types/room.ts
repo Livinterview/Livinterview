@@ -4,7 +4,6 @@ export interface Room {
     dong_name: string
     lat: number
     lng: number
-    price_info: string
     area_m2: number
     img_url_list?: string
     deposit: number

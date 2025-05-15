@@ -37,11 +37,11 @@ export default function LoginPage() {
           alt="ZIPUP 로고"
           className="w-[50px]"
         />
-        <span className="text-3xl font-black text-zipup-600">ZIPUP</span>
+        <span className="text-3xl font-black text-zipup-600">LIVINTERVIEW</span>
       </div>
 
       <p className="text-gray-600 text-sm mb-10 text-center">
-        함께 집업과의 여정을 떠나봐요!
+        함께 삶터뷰와의 여정을 떠나봐요!
       </p>
 
       {/* 소셜 로그인 버튼 */}

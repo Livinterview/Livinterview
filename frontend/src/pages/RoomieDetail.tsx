@@ -6,6 +6,7 @@ import { useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
+import MapPriceDisplay from "../components/MapPriceDisplay"
 import 'swiper/css';
 import 'swiper/css/navigation';
 
@@ -126,7 +127,11 @@ export default function RoomDetail({
         <h2 className="text-2xl font-bold">{room.room_title}</h2>
         <p className="text-gray-600">{room.dong_name}</p>
         <p className="text-xl font-semibold text-blue-600">
-          💰 {room.price_info}만원 / {room.area_m2}평/{room.lat}/{room.lng}
+          💰 <MapPriceDisplay
+                        priceType={room.price_type}
+                        deposit={room.deposit}
+                        monthly={room.monthly}
+                      />
         </p>
         <p className="text-sm text-gray-500">※ 본 정보는 예시.</p>
 
