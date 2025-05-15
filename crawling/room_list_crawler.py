@@ -86,11 +86,13 @@ def parse_price_info(row):
     deposit, monthly = 0, 0
 
     if isinstance(price_info, str):
+        price_info = price_info.strip()
         if price_type == "월세":
-            deposit_monthly = re.match(r"(\d*\.?\d+)/(\d*\.?\d+)", price_info)
-            if deposit_monthly:
-                deposit = int(parse_money(deposit_monthly.group(1))) or 0
-                monthly = int(parse_money(deposit_monthly.group(2))) or 0
+            if "/" in price_info:
+                parts = price_info.split("/")
+                if len(parts) == 2:
+                    deposit = parse_money(parts[0])
+                    monthly = parse_money(parts[1])
         elif price_type == "전세":
             deposit = parse_money(price_info)
             monthly = 0
@@ -98,20 +100,33 @@ def parse_price_info(row):
 
 # ───── 금액 문자열 → 숫자 ─────
 def parse_money(money_str):
-    money = 0
-    parts = re.findall(r"(\d*\.?\d+)\s*(억|만|천)?", money_str.strip())
+    if not isinstance(money_str, str) or not money_str.strip():
+        return 0
+    
+    money_str = money_str.replace(",", "").replace(" ", "").strip()
+    total = 0
 
-    for num, unit in parts:
-        num = float(num)
+    # 복합 단위 처리 (예: "1억3000" → [("1", "억"), ("3000", "")])
+    # 단위 없으면 '만' 단위로 해석
+    pattern = re.findall(r"(\d+(?:\.\d+)?)(억|만|천)?", money_str)
+
+    for num_str, unit in pattern:
+        try:
+            num = float(num_str)
+        except ValueError:
+            continue
+
         if unit == "억":
-            money += num * 1e8
+            total += num * 1e8
         elif unit == "만":
-            money += num * 1e4
+            total += num * 1e4
         elif unit == "천":
-            money += num * 1e3
+            total += num * 1e3
         else:
-            money += num * 1e4  # 단위 없으면 만원 단위
-    return int(money) if money > 0 else None
+            # 단위 없으면 '만원'으로 간주
+            total += num * 1e4
+
+    return int(total)
 
 # ───── 크롤링 ─────
 def crawl_all_dongs():
