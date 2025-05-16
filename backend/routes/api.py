@@ -35,6 +35,7 @@ def get_questions(db: Session = Depends(get_db)):
             answer.to_dict() for answer in question.homie_answers
         ]
         qna_list.append(question_data)
+    print(f"{qna_list = }")
     return qna_list
 
 
@@ -390,7 +391,7 @@ async def report(request: Request, db: Session = Depends(get_db)):
         user_id = user_id[0]
 
     intro_text = "\n".join(json_data["intro_text"])
-    new_homie_history = HomieHistory(user_id=user_id, intro_text=intro_text)
+    new_homie_history = HomieHistory(user_id=user_id, intro=intro_text)
     db.add(new_homie_history)
     db.flush()
     for sub_category, score in answers.items():
@@ -481,14 +482,11 @@ def calc_8_and_top_indicators(
     return avg_indicators, top_indicators
 
 
-# utils/category_map.py
-# from sqlalchemy import select
-# from models import HomieQuestion
+from sqlalchemy import text
 
 
 @router.get("/histories")
 async def histories(request: Request, db: Session = Depends(get_db)):
-
     rows = db.execute(
         select(HomieQuestion.sub_category, HomieQuestion.main_category)
     ).all()
@@ -506,11 +504,14 @@ async def histories(request: Request, db: Session = Depends(get_db)):
     elif "email" in raw_user and "mobile" in raw_user:
         email = raw_user["email"]
 
-    user_id = (
-        db.execute(select(User.id).where(User.email == email)).scalar_one_or_none()
-        if email
-        else None
-    )
+    if email:
+        row = db.execute(
+            select(User.id).where(User.email == email).limit(1)  # 중복이 있어도 첫 행만
+        ).first()  # None | (id,)
+        user_id = row[0] if row else None
+    else:
+        user_id = None  # 로그인 안 됨
+
     if user_id is None:
         return []
 
@@ -521,7 +522,7 @@ async def histories(request: Request, db: Session = Depends(get_db)):
 
     result = []
     for hist in histories:
-        json_data = {"intro_text": hist.intro_text.split("\n")}
+        json_data = {"intro_text": hist.intro.split("\n")}
 
         # --- answers 복원 ----------------------------------------------------
         answers = {}
