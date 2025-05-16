@@ -13,6 +13,8 @@ function SurveyForm() {
   // 사용자 응답 저장 객체 (key: 질문 id, value: 선택값 또는 복수 키)
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  // (1) 마지막 질문 마치고 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(false); 
 
   useEffect(() => {
     const load = async () => {
@@ -25,6 +27,18 @@ function SurveyForm() {
   // 현재 질문 데이터
   const current = questions[index];
   const navigate = useNavigate();
+
+
+  // (2) 로딩 중일 때 별도 UI 렌더링
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center text-center p-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-6"></div>
+        <p className="text-lg font-semibold text-gray-800 mb-2">삶권 분석 서비스를 가동 중입니다...</p>
+        <p className="text-sm text-gray-500">잠시만 기다려 주세요 🙏</p>
+      </div>
+    );
+  }
 
   if (!current) {
     return (
@@ -50,6 +64,8 @@ function SurveyForm() {
     // --- 마지막 문항일 때 API 호출 ---
     if (index >= questions.length - 1) {
       try {
+        setIsLoading(true); // (3) 로딩 시작
+
         const res = await fetch("http://localhost:8000/api/report", {
           method: "POST",
           headers: {
@@ -66,6 +82,7 @@ function SurveyForm() {
       } catch (err: any) {
         console.error(err);
         alert("서버에 데이터를 전송하는 중 오류가 발생했습니다.");
+        setIsLoading(false); // (4) 에러 발생 시 로딩 해제
       }
     } else {
       // 다음 질문으로

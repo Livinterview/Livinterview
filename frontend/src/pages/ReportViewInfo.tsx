@@ -5,20 +5,20 @@ type ReportViewInfoProps = {
   topIndicators: string[];
   index: number;  // 자동으로 pdf-info-1, -2, -3 처리용
   mapReady: boolean; 
+  description: string[];
 };
 
-export default function ReportViewInfo({ dongName, fullLocation, userName, topIndicators, index ,mapReady}: ReportViewInfoProps) {
+
+export default function ReportViewInfo({
+  dongName,
+  fullLocation,
+  userName,
+  topIndicators,
+  index,
+  mapReady,
+  description,  
+}: ReportViewInfoProps) {
   const indicatorText = topIndicators.map((item) => `${item}지표`).join(", ");
-
-  // ✅ 더미 데이터 (index별로 다르게 할 수 있음)
-  const dongFeatures = ["생활지표", "안전지표", "교통지표"];
-
-  const descriptionTexts: string[] = [
-    `${dongName}은 지하철이 지나고, 서울 도심과의 접근성이 우수한 동네입니다.`,
-    `${dongName}에는 카페, 편의시설, 식당이 다양하게 분포되어 있습니다.`,
-    `${dongName}은 젊은 세대가 선호하는 주거지로, 생활환경이 쾌적합니다.`,
-    `현재 ${dongName} 내 다양한 주거시설이 있습니다.`,
-  ];
 
   return (
     <div className="flex flex-col items-start w-[794px] min-w-[794px] mt-12">
@@ -26,7 +26,7 @@ export default function ReportViewInfo({ dongName, fullLocation, userName, topIn
 
       <div
         id={`pdf-info-${index}`}
-        className="relative" 
+        className="relative"
         style={{
           width: "794px",
           height: "1123px",
@@ -41,104 +41,63 @@ export default function ReportViewInfo({ dongName, fullLocation, userName, topIn
         }}
       >
         {/* 사용자 이름 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "210px",
-            left: "55px",
-            fontSize: "18px",
-            fontWeight: "bold",
-          }}
-        >
+        <div style={{ position: "absolute", top: "210px", left: "55px", fontSize: "18px", fontWeight: "bold" }}>
           <span>{userName}</span>
         </div>
 
-        {/* 지도 이미지 삽입 위치 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "370px",
-            left: "60px",
-            width: "360px",
-            height: "360px",
-            overflow: "hidden",
-            backgroundColor: "white",
-          }}
-        >
-          {/* <img
-            src={`/icons/report/all_report_view/map_image/${encodeURIComponent(dongName)}_map.png`}
-            alt={`${dongName} 위치 지도`}
-            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-          /> */}
+        {/* 지도 */}
+        <div style={{
+          position: "absolute",
+          top: "370px",
+          left: "60px",
+          width: "360px",
+          height: "360px",
+          overflow: "hidden",
+          backgroundColor: "white",
+          // border: "2px dashed red",
+        }}>
           {mapReady ? (
             <img
-                src={`/icons/report/all_report_view/map_image/${encodeURIComponent(dongName)}_map.png`}
-                alt={`${dongName} 지도`}
-                style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-              />
+              src={`/icons/report/all_report_view/map_image/${encodeURIComponent(dongName)}_map.png`}
+              alt={`${dongName} 지도`}
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            />
           ) : (
-            <p>지도를 준비 중입니다...</p> // ✅ 로딩 대체 메시지
+            <p>지도를 준비 중입니다...</p>
           )}
         </div>
 
-        {/* 중요지표 문구 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "440px",
-            left: "490px",
-            width: "240px",
-            fontSize: "17px",
-            lineHeight: "1.6",
-            textAlign: "center",
-            color: "#333",
-          }}
-        >
+        {/* 중요지표 텍스트 */}
+        <div style={{
+          position: "absolute",
+          top: "440px",
+          left: "490px",
+          width: "240px",
+          fontSize: "17px",
+          lineHeight: "1.6",
+          textAlign: "center",
+          color: "#333",
+        }}>
           <span>{userName}</span> 님의 중요지표인<br />
-          <span style={{ fontWeight: "bold", color: "#4c8689" }}>{indicatorText}</span><span>가</span>
-          <br />
+          <span style={{ fontWeight: "bold", color: "#4c8689" }}>{indicatorText}</span><span>가</span><br />
           특징인 동네를 분석하여 <br />추천해드립니다.
         </div>
 
         {/* 동 이름 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "620px",
-            left: "560px",
-            fontWeight: "bold",
-            fontSize: "17px",
-          }}
-        >
+        <div style={{ position: "absolute", top: "620px", left: "555px", fontWeight: "bold", fontSize: "17px" }}>
           {dongName}
         </div>
 
         {/* 위치 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "690px",
-            left: "560px",
-            fontSize: "17px",
-            fontWeight: "bold",
-          }}
-        >
+        <div style={{ position: "absolute", top: "690px", left: "555px", fontSize: "17px", fontWeight: "bold" }}>
           {fullLocation}
         </div>
 
-        {/* 동네 주요 특징 */}
-        <div style={{ position: "absolute", top: "900px", left: "300px", fontSize: "15px" }}>
-          {dongFeatures[0]}
-        </div>
-        <div style={{ position: "absolute", top: "900px", left: "590px", fontSize: "15px" }}>
-          {dongFeatures[1]}
-        </div>
-
-        {/* 설명 */}
+        {/* 설명 텍스트 */}
         <div
           style={{
             position: "absolute",
-            top: "950px",
+            top: "945px",
             left: "180px",
             fontSize: "13px",
             lineHeight: "1.4",
@@ -147,7 +106,7 @@ export default function ReportViewInfo({ dongName, fullLocation, userName, topIn
             color: "#333",
           }}
         >
-          {descriptionTexts.map((text: string, idx: number) => (
+          {description.map((text, idx) => (
             <div key={idx} style={{ display: "flex", marginBottom: "5px" }}>
               <span style={{ color: "#0E6D62", fontWeight: "bold", marginRight: "6px" }}>●</span>
               <p style={{ margin: 0, padding: 0 }}>{text}</p>

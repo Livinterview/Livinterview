@@ -42,7 +42,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "455px",
+            top: "450px",
             left: "150px", // 초록 번호 오른쪽으로 적당히 띄움
             right: "60px",
             fontSize: "16px",
@@ -59,7 +59,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "620px",
+            top: "610px",
             left: "150px",
             right: "60px",
             fontSize: "16px",
@@ -69,14 +69,15 @@ export default function ReportViewGuide() {
             fontFamily: "Pretendard-Regular",
           }}
         >
-          작성해주신 지하철역을 기준으로 250m, 500m, 1km 이내의 오피스텔을 위주로 분석해서 맞춤형 삶권분석 리포트를 전달해 드립니다. 추후 빌라, 다세대주택 등 다양한 주거 형태까지 분석해서 전달드릴 수 있도록 열심히 노력하겠습니다.
+          선호하시는 선택지를 위주로 분석해서 맞춤형 삶권분석 리포트를 전달해 드립니다. <br></br>
+          추후 빌라, 다세대주택 등 다양한 주거 형태까지 분석해서 전달드릴 수 있도록 열심히 노력하겠습니다.
         </div>
 
         {/* 내용 3 */}
         <div
           style={{
             position: "absolute",
-            top: "780px",
+            top: "770px",
             left: "150px",
             right: "60px",
             fontSize: "16px",
@@ -93,7 +94,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "960px",
+            top: "950px",
             left: "150px",
             right: "60px",
             fontSize: "16px",

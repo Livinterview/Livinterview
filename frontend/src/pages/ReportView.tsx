@@ -3,72 +3,54 @@ import { useRef, useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+interface RecommendedItem {
+  name: string;
+  location: string;
+  description: string[];
+}
+
+
 // 분리된 페이지
-import ReportViewCover  from "./ReportViewCover";
-import ReportViewGuide  from "./ReportViewGuide";
+import ReportViewCover from "./ReportViewCover";
+import ReportViewGuide from "./ReportViewGuide";
 import ReportViewResult from "./ReportViewResult";
 import ReportViewInfo from "./ReportViewInfo";
 import ReportViewLast from "./ReportViewLast";
 
 export default function ReportView() {
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // 🔐 사용자 정보 세션에서 가져오기
   const storedUser = sessionStorage.getItem("user");
   const parsedUser = storedUser ? JSON.parse(storedUser) : null;
   const userName = parsedUser?.name || "이름 없음";
+  
 
-  // 📋 설문 결과 및 분석 결과 기본값
-  const answers = (location.state?.answers as Record<string, string>) || {
-    "1-subway": "보통이다",
-    "2-convenience": "자주 간다",
-    "3-police": "어느 정도 가까우면 좋다",
-  };
+  // 📋 전체 리포트 데이터 추출
+  const data = location.state?.data;
 
-  const topIndicators = location.state?.topIndicators || ["생활", "안전", "교통"];
-  const scores = location.state?.scores || {
-      교통: 60,
-      편의: 60,
-      안전: 70,
-      건강: 20,
-      녹지: 45,
-      생활: 70,
-      놀이: 25,
-      운동: 50,
-    };
+  // 개별 변수로 분리
+  const scores = data?.["8_indicators"] ?? {};
+  const topIndicators = data?.top_indicators ?? [];
+  const introText = data?.intro_text ?? [];
+  const eightIndicatorDescriptions = data?.["8_indicator_discriptions"] ?? {};
 
-  // const dongName = location.state?.dongName || "구의동"; // 추천 동
-  // const guName = location.state?.guName || "광진구"; 
-  // const fullLocation = `서울특별시 ${guName} ${dongName}`;
-
-  const fullLocationList = location.state?.fullLocationList || [
-    "서울특별시 광진구 구의동",
-    "서울특별시 은평구 역촌동",
-    "서울특별시 송파구 잠실동"
-  ];
-
-  const dongNameList = fullLocationList.map((loc: string) => loc.split(" ")[2]);
-  const guNameList   = fullLocationList.map((loc: string) => loc.split(" ")[1]);
-
+  const recommended = data?.recommended ?? [];
 
   const reportRef = useRef<HTMLDivElement>(null);
-
-  // 이미지 생성이 모두 끝났는지 추적할 상태 추가
   const [mapReady, setMapReady] = useState(false);
 
-  // ✅ (fullLocationList 각각에 대해 지도 생성)
+  // 지도 생성 요청 (추천 동네 기준)
   useEffect(() => {
     const generateAllMaps = async () => {
-      let successCount = 0; // 성공한 지도 개수 체크
-
-      for (const fullLocation of fullLocationList) {
+      let successCount = 0;
+      for (const item of recommended) {
+        const fullLocation = item.location;
         try {
           const res = await fetch("http://localhost:8000/generate-map", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ full_location: fullLocation }),
           });
 
@@ -79,32 +61,32 @@ export default function ReportView() {
           }
 
           console.log("✅ 지도 생성 완료:", fullLocation);
-          successCount += 1; // 성공 시 카운트 증가
+          successCount += 1;
         } catch (error) {
           console.error("❌ 네트워크 오류:", fullLocation, error);
         }
       }
 
-      // 모든 지도가 성공적으로 처리되면 렌더링 시작
-      if (successCount === fullLocationList.length) {
+      if (successCount === recommended.length) {
         setMapReady(true);
       }
     };
 
-    generateAllMaps();
-  }, [fullLocationList]);
+    if (recommended.length > 0) {
+      generateAllMaps();
+    }
+  }, [recommended]);
 
-
-  /* ★ PDF 다운로드 – 페이지별 캡처 방식 */
+  // 📄 PDF 다운로드
   const handleDownloadPDF = async () => {
     const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
 
     const pages = [
-    "pdf-cover",
-    "pdf-guide",
-    "pdf-result",
-    ...fullLocationList.map((_: string, idx: number) => `pdf-info-${idx}`),
-    "pdf-last"
+      "pdf-cover",
+      "pdf-guide",
+      "pdf-result",
+      ...recommended.map((_: RecommendedItem, idx: number) => `pdf-info-${idx}`),
+      "pdf-last"
     ];
 
     for (let i = 0; i < pages.length; i++) {
@@ -123,50 +105,70 @@ export default function ReportView() {
 
       pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 0, 0, 794, 1123);
     }
+
     pdf.save("homie_report.pdf");
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 py-12 px-4">
-      {/* 상단 타이틀 & 버튼 */}
-      <h1 className="text-2xl font-bold text-blue-600 mb-4">리포트 상세 보기</h1>
-      <button
-        onClick={handleDownloadPDF}
-        className="self-end mb-6 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-      >
-        📄 PDF 다운로드
-      </button>
+      {/* 상단 정렬 라인 – w-[794px] 기준 */}
+      <div className="w-[794px] mx-auto relative mb-6">
 
-      {/* ★ 각 페이지를 794×1123 로 고정 – absolute 레이아웃 그대로 */}
+        {/* 가운데 정렬된 타이틀 */}
+        <div className="flex items-center justify-center gap-x-2">
+          <img
+            src="/icons/main.png"
+            alt="ZIPUP 로고"
+            className="w-[32px] h-auto" // ← 아이콘 느낌 유지
+          />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#2E3D86]">
+            리포트 상세 보기
+          </h1>
+        </div>
+
+        {/* 오른쪽 PDF 버튼 – 살짝 아래로 내림 */}
+        <button
+          onClick={handleDownloadPDF}
+          className="absolute right-0 top-[80px] px-4 py-2 bg-[#2E3D86] text-white text-sm font-medium rounded-lg shadow hover:bg-[#1f2b63] transition print:hidden"
+        >
+          📄 PDF 다운로드
+        </button>
+      </div>
+      {/* 리포트 전체 페이지 (A4 비율 유지) */}
       <div ref={reportRef} id="report-page" className="flex flex-col gap-0">
         <ReportViewCover />
         <ReportViewGuide />
-        <ReportViewResult
-          userName={userName}
-          topIndicators={topIndicators}
-          scores={scores}
+        <ReportViewResult 
+          userName={userName} 
+          topIndicators={topIndicators} 
+          introText = {introText}
+          scores={scores} 
+          eightIndicatorDescriptions={eightIndicatorDescriptions} 
         />
-        {/* 추천 동네 3곳 반복 렌더링 */}
-        {fullLocationList.map((fullLocation: string, idx: number) => (
-        <ReportViewInfo
-          key={idx}
-          index={idx}
-          dongName={dongNameList[idx]}
-          fullLocation={fullLocation}
-          userName={userName}
-          topIndicators={topIndicators}
-          mapReady={mapReady}
-        />
+
+        {/* 추천 동네 반복 렌더링 */}
+        {recommended.map((item: RecommendedItem, idx: number) => (
+          <ReportViewInfo
+            key={idx}
+            index={idx}
+            dongName={item.name}
+            fullLocation={item.location}
+            userName={userName}
+            topIndicators={topIndicators}
+            mapReady={mapReady}
+            description={item.description}
+          />
         ))}
+
         <ReportViewLast />
       </div>
 
-      {/* 결과로 돌아가기 */}
+      {/* 결과 요약으로 돌아가기 */}
       <button
-        onClick={() => navigate("/report", { state: { answers } })}
+        onClick={() => navigate("/report", { state: { data } })}
         className="mt-8 px-6 py-2 bg-gray-200 rounded hover:bg-gray-300"
       >
-        🔙 결과 요약으로 돌아가기
+        🔙 뒤로 돌아가기
       </button>
     </div>
   );

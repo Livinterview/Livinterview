@@ -2,7 +2,7 @@
 import os
 import geopandas as gpd
 import matplotlib
-matplotlib.use("Agg")  #  GUI 백엔드 대신 파일 출력용 백엔드 사용
+matplotlib.use("Agg")  # GUI 백엔드 대신 파일 출력용 백엔드 사용
 
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
@@ -49,7 +49,7 @@ def create_map(full_location: str):
         '11740': '강동구'
     }
     gdf['자치구'] = gdf['COL_ADM_SE'].map(gu_map)
-
+    
     # 필터링
     gu_filtered = gdf[gdf['자치구'] == gu_name].copy()
     if gu_filtered.empty:
@@ -58,32 +58,42 @@ def create_map(full_location: str):
     if dong_name not in gu_filtered['EMD_NM'].values:
         raise HTTPException(status_code=404, detail=f"{dong_name} 동이 {gu_name} 안에 없습니다.")
 
-    gu_filtered['fill'] = gu_filtered['EMD_NM'].apply(lambda x: '#4c8689' if x == dong_name else '#ffffff')
+    gu_filtered['fill'] = gu_filtered['EMD_NM'].apply(lambda x: '#4c8689' if x == dong_name else '#f5f5f5')  # fill 색상도 수정
 
     # 시각화
     fig, ax = plt.subplots(figsize=(6, 6))
     gu_filtered.plot(ax=ax, color=gu_filtered['fill'], edgecolor='black', linewidth=1)
 
     for _, row in gu_filtered.iterrows():
-        c = row.geometry.representative_point()
+        if row['EMD_NM'] != dong_name:
+            continue
+        c = row.geometry.centroid  # representative_point → centroid
         ax.text(
             c.x, c.y, row['EMD_NM'],
-            fontsize=9,
+            fontsize=10,
             fontweight='bold',
             ha='center',
             va='center',
-            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", lw=0.5)
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", lw=0.5),
+            zorder=10  # 지도 위로 올림
         )
 
-    plt.axis('off')
-    plt.tight_layout()
+    # 여백 제거를 위한 축 제한 설정
+    margin_ratio = 0.005
+    xmin, ymin, xmax, ymax = gu_filtered.total_bounds
+    x_margin = (xmax - xmin) * margin_ratio
+    y_margin = (ymax - ymin) * margin_ratio
+    ax.set_xlim(xmin - x_margin, xmax + x_margin)
+    ax.set_ylim(ymin - y_margin, ymax + y_margin)
 
-    # 저장 폴더 생성 및 저장
+    # 불필요 요소 제거
+    plt.axis('off')
+
+    # 저장 폴더 생성 및 저장장
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    plt.savefig(output_path, dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(output_path, dpi=300, pad_inches=0.0)  # 여백 제거 저장
 
     return output_path
-
 
 # API 엔드포인트
 @router.post("/generate-map")
