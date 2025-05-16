@@ -28,9 +28,10 @@ export default function RoomieClean() {
     originalImageId,
   } = state as ChatState;
 
+  type Label = { en: string; ko: string; };
   type Step = "askClean" | "labeling";
   const [step, setStep] = useState<Step>("askClean");
-  const [labels, setLabels] = useState<string[]>([]);
+  const [labels, setLabels] = useState<Label[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -180,7 +181,7 @@ export default function RoomieClean() {
         <div>
           <p className="font-semibold">남길 가구를 선택해주세요:</p>
           <div className="flex flex-wrap gap-2 mt-2">
-            {labels.map((label, idx) => (
+            {labels.map((labelObj, idx) => (
               <button
                 key={idx}
                 onClick={() => toggleLabel(idx)}
@@ -190,7 +191,7 @@ export default function RoomieClean() {
                     : "bg-gray-200 text-gray-800"
                 }`}
               >
-                {label}
+                {labelObj.ko}
               </button>
             ))}
           </div>
