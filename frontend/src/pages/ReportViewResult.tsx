@@ -1,24 +1,30 @@
-import { useLocation } from "react-router-dom";
+import React from "react";
 
-// 타입 정의
-type ReportViewResultProps = {
+// ✅ props 타입 정의
+interface ReportViewResultProps {
   userName: string;
   topIndicators: string[];
+  introText: string[];
   scores: Record<string, number>;
-};
+  eightIndicatorDescriptions: Record<string, string>;  // ✅ 수정됨
+}
 
-
-export default function ReportViewResult({ userName, topIndicators, scores }: ReportViewResultProps) {
-
-  const indicatorDescription: Record<string, string> = {
-    교통: "지역권역의 위치, 거주의 위치를 실내공간으로 중요하게 생각하는 편임",
-    편의: "편의점, 다이소를 자주 이용하지 않지만 집 근처에 위치하는 것에 상대적으로 중요하게 생각함",
-    안전: "집 근처 안전관련 기관 및 동네 안전지수 등을 중요하게 생각함",
-    건강: "평소에 병/의원을 잘 찾아가지 않는 편으로 집 주변의 병/의원 위치가 중요하지 않음",
-    녹지: "집 주변의 푸르른 환경에 대하여 선호도가 낮은 편임",
-    생활: "장을 보거나 은행, 우체국 등의 생활관련시설 방문 횟수가 적지 않아 중요도가 높은 편임",
-    놀이: "영화관, 코인노래방, PC 방등 취미활동 할 수 있는 공간에 대한 필요성이 낮아 중요도가 낮음",
-    운동: "평소 운동을 선호하나, 집 주변 운동시설을 찾기보다는 거리가 약간 있어도 기존에 운동했던 시설에서 하는 것을 더 선호하는 편임",
+export default function ReportViewResult({
+  userName,
+  topIndicators,
+  introText, 
+  scores,
+  eightIndicatorDescriptions, 
+}: ReportViewResultProps) {
+  const indicatorImageMap: Record<string, string> = {
+    생활: "life",
+    안전: "safety",
+    교통: "transfer",
+    편의: "convenience",
+    건강: "health",
+    녹지: "green",
+    놀이: "play",
+    운동: "workout",
   };
 
   return (
@@ -38,53 +44,44 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
         }}
       >
         {/* 🧑 사용자 이름 */}
-        <div style={{ position: "absolute", top: "208px", left: "500px", fontSize: "20px", fontWeight: "bold", fontFamily: "Pretendard-Regular" }}>
-          <span style={{
-              color: "black",
-            }}>{userName}</span> <span style={{ color: "#4c8689"  }}>님의 삶권분석</span>
+        <div style={{
+          position: "absolute",
+          top: "192px",
+          left: "540px",
+          fontSize: "20px",
+          fontWeight: "bold",
+          fontFamily: "Pretendard-Regular"
+        }}>
+          <span style={{ color: "black" }}>{userName}</span>
+          <span style={{ color: "#4c8689" }}>  님의 삶권분석</span>
         </div>
 
-        {/* 📌 중요 지표 리스트 */}
+        {/* 📌 중요 지표 텍스트 */}
         <div
           style={{
             position: "absolute",
-            top: "290px",
+            top: "268px",
             left: "50px",
             display: "flex",
             alignItems: "center",
-            fontSize: "19px",
+            fontSize: "18px",
             color: "#4c8689",
             gap: "6px",
             lineHeight: "1.5",
-            fontFamily: "Pretendard-Regular"
+            fontFamily: "Pretendard-Regular",
           }}
         >
-           <span style={{ fontWeight: "bold", color: "black" }}>{userName}</span> <span>님은 거주지를 선택하실 때,</span>
-          {topIndicators.map((indicator: string, idx: number) => (
+          <span style={{ fontWeight: "bold", color: "black" }}>{userName}</span>
+          <span>님은 거주지를 선택하실 때,</span>
+          {topIndicators.map((indicator, idx) => (
             <span key={idx} style={{ fontWeight: "bold", color: "black" }}>{indicator}</span>
           ))}
           <span>부분을 중요하게 생각하시네요.</span>
         </div>
 
-        {/* 🖼️ 중요 지표 아이콘 이미지 3개 */}
-        <div
-          style={{
-            position: "relative",
-            width: "794px", // A4 비율 기준으로 명시
-            height: "700px", // 이미지+텍스트 총 높이 고려
-          }}
-        >
-          {topIndicators.map((indicator: string, idx: number) => {
-            const indicatorImageMap: Record<string, string> = {
-              생활: "life",
-              안전: "safety",
-              교통: "transfer",
-              편의: "convenience",
-              건강: "health",
-              녹지: "green",
-              놀이: "play",
-              운동: "workout",
-            };
+        {/* 🖼️ 중요 지표 아이콘 */}
+        <div style={{ position: "relative", width: "794px", height: "700px" }}>
+          {topIndicators.map((indicator, idx) => {
             const folderName = indicatorImageMap[indicator];
             const imagePath = `/icons/report/${folderName}/0.png`;
 
@@ -96,7 +93,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
                   crossOrigin="anonymous"
                   style={{
                     position: "absolute",
-                    top: "331px",
+                    top: "312px",
                     left: `${65 + idx * 240}px`,
                     width: "180px",
                     height: "180px",
@@ -106,9 +103,9 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
                 <div
                   style={{
                     position: "absolute",
-                    top: "524px",
+                    top: "509px",
                     left: `${100 + idx * 240}px`,
-                    fontSize: "24px",
+                    fontSize: "23px",
                     fontWeight: "bold",
                     color: "white",
                   }}
@@ -120,11 +117,11 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
           })}
         </div>
 
-        {/* 📌 설명 텍스트 영역 */}
+        {/* 📌 설명 텍스트 */}
         <div
           style={{
             position: "absolute",
-            top: "600px",
+            top: "580px",
             left: "29px",
             fontFamily: "Pretendard-Regular",
             fontSize: "14px",
@@ -134,10 +131,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
             boxSizing: "border-box",
           }}
         >
-          {[
-            "집을 찾으실 때 다양한 부분들을 복합적으로 고려하시겠지만, 집 근처 대형 마트, 은행, 우체국 등의 시설이 집 근처에 있는지 중요하게 생각하시는 군요. 그 외 그 동네가 얼마나 안전한지, 경찰서는 집에서 얼마나 가까운 곳에 있는지, 집 근처 지하철 역의 위치 등이 집과 가까운지 등을 신경 쓰시는 스타일이시네요.",
-            "실제 내가 살아보면 어떨까에 대해 생각하면서 여러 요소를 꼼꼼하게 확인하고 주거지를 고르는 당신을 위해 안전하면서도 편안함이 있는 오피스텔들을 찾아볼게요!",
-          ].map((text, idx) => (
+          {introText.map((text, idx) => (
             <div key={idx} style={{ display: "flex", marginBottom: "5px" }}>
               <span style={{ color: "#0E6D62", fontWeight: "bold", marginRight: "8px" }}>●</span>
               <p style={{ margin: 0, padding: 0 }}>{text}</p>
@@ -146,8 +140,8 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
         </div>
 
         {/* 📊 하단 점수표 */}
-        <div style={{ position: "absolute", top: "745px", left: "29px", fontFamily: "Pretendard-Regular", fontSize: "13px", width: "720px", maxHeight: "380px", overflow: "hidden",  boxSizing: "border-box" }}>
-          <div style={{ backgroundColor: "#4c8689", color: "white", padding: "5px 12px", fontSize: "15px", lineHeight: "1.6", whiteSpace: "nowrap", width: "251px" }}>
+        <div style={{ position: "absolute", top: "710px", left: "29px", fontFamily: "Pretendard-Regular", fontSize: "13px", width: "720px", maxHeight: "380px", overflow: "hidden",  boxSizing: "border-box" }}>
+          <div style={{ backgroundColor: "#4c8689", color: "white", padding: "5px 12px", fontSize: "15px", lineHeight: "1.6", whiteSpace: "nowrap", width: "231px" }}>
             <span style={{ fontWeight: "bold", fontSize: "18px" }}>{userName}</span> 님의 8가지 지표 분석
           </div>
 
@@ -155,19 +149,19 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
             <thead>
               <tr style={{ backgroundColor: "#E9F0EF", color: "#333", fontSize: "15px" }}>
                 <th style={{ padding: "5px", border: "1px solid #2D7F7F", width: "50px", textAlign: "center", color: "#4c8689", backgroundColor: "#d4e4e5" }}>지표</th>
-                <th style={{ padding: "5px", border: "1px solid #2D7F7F", width: "200px", textAlign: "center", color: "#4c8689" }}>중요도</th>
+                <th style={{ padding: "5px", border: "1px solid #2D7F7F", width: "180px", textAlign: "center", color: "#4c8689" }}>중요도</th>
                 <th style={{ padding: "5px", border: "1px solid #2D7F7F", textAlign: "center", color: "#4c8689" }}>설명</th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(scores as Record<string, number>).map(([label, score]) => (
                 <tr key={label}>
-                  <td style={{ padding: "3px", border: "1px solid #2D7F7F", fontWeight: "bold", backgroundColor: "#d4e4e5", textAlign: "center", color: "#4c8689", fontSize: "15px" }}>{label}</td>
-                  <td style={{ padding: "3px", border: "1px solid #2D7F7F", backgroundColor: "white", color: "#0E6D62", fontSize: "14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}>
-                      <span>{score}</span>
-                      <div style={{ width: "150px", backgroundColor: "#E5E7EB", height: "8px", borderRadius: "4px" }}>
-                        <div style={{ width: `${score}%`, height: "100%", backgroundColor: "#0E6D62", borderRadius: "4px" }} />
+                  <td style={{ padding: "4px", border: "1px solid #2D7F7F", fontWeight: "bold", backgroundColor: "#d4e4e5", textAlign: "center", color: "#4c8689", fontSize: "15px" }}>{label}</td>
+                  <td style={{ padding: "4px", border: "1px solid #2D7F7F", backgroundColor: "white", color: "#0E6D62", fontSize: "14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "13px", justifyContent: "center" }}>
+                      <span style={{ fontWeight: 600 }} >{score}</span>
+                      <div style={{ width: "130px", backgroundColor: "#E5E7EB", height: "14px", borderRadius: "6px" }}>
+                        <div style={{ width: `${score}%`, height: "100%", backgroundColor: "#0E6D62", borderRadius: "6px" }} />
                       </div>
                     </div>
                   </td>
@@ -180,7 +174,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
                     wordBreak: "break-word",          
                     overflow: "hidden",      
                   }}>
-                    {indicatorDescription[label] || ""}
+                    {eightIndicatorDescriptions[label] || ""}
                   </td>
                 </tr>
               ))}
@@ -188,9 +182,7 @@ export default function ReportViewResult({ userName, topIndicators, scores }: Re
           </table>
         </div>
 
-
       </div>
     </div>
   );
 }
-

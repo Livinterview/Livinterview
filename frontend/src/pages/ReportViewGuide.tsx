@@ -42,7 +42,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "455px",
+            top: "450px",
             left: "150px", // 초록 번호 오른쪽으로 적당히 띄움
             right: "60px",
             fontSize: "16px",
@@ -59,7 +59,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "620px",
+            top: "610px",
             left: "150px",
             right: "60px",
             fontSize: "16px",
@@ -76,7 +76,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "780px",
+            top: "770px",
             left: "150px",
             right: "60px",
             fontSize: "16px",
@@ -93,7 +93,7 @@ export default function ReportViewGuide() {
         <div
           style={{
             position: "absolute",
-            top: "960px",
+            top: "950px",
             left: "150px",
             right: "60px",
             fontSize: "16px",
