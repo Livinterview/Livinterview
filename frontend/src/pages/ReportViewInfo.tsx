@@ -16,7 +16,7 @@ export default function ReportViewInfo({
   topIndicators,
   index,
   mapReady,
-  description,  // ✅ 여기에 이미 잘 넘어옴
+  description,  
 }: ReportViewInfoProps) {
   const indicatorText = topIndicators.map((item) => `${item}지표`).join(", ");
 
@@ -84,12 +84,12 @@ export default function ReportViewInfo({
         </div>
 
         {/* 동 이름 */}
-        <div style={{ position: "absolute", top: "620px", left: "560px", fontWeight: "bold", fontSize: "17px" }}>
+        <div style={{ position: "absolute", top: "620px", left: "555px", fontWeight: "bold", fontSize: "17px" }}>
           {dongName}
         </div>
 
         {/* 위치 */}
-        <div style={{ position: "absolute", top: "690px", left: "560px", fontSize: "17px", fontWeight: "bold" }}>
+        <div style={{ position: "absolute", top: "690px", left: "555px", fontSize: "17px", fontWeight: "bold" }}>
           {fullLocation}
         </div>
 

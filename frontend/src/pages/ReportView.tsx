@@ -30,7 +30,7 @@ export default function ReportView() {
   // 📋 전체 리포트 데이터 추출
   const data = location.state?.data;
 
-  // ✅ [수정됨] 개별 변수로 분리
+  // 개별 변수로 분리
   const scores = data?.["8_indicators"] ?? {};
   const topIndicators = data?.top_indicators ?? [];
   const introText = data?.intro_text ?? [];
@@ -41,7 +41,7 @@ export default function ReportView() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
 
-  // ✅ 지도 생성 요청 (추천 동네 기준)
+  // 지도 생성 요청 (추천 동네 기준)
   useEffect(() => {
     const generateAllMaps = async () => {
       let successCount = 0;
@@ -115,9 +115,16 @@ export default function ReportView() {
       <div className="w-[794px] mx-auto relative mb-6">
 
         {/* 가운데 정렬된 타이틀 */}
-        <h1 className="text-xl sm:text-2xl font-extrabold text-[#2E3D86] text-center">
-          📘 리포트 상세 보기
-        </h1>
+        <div className="flex items-center justify-center gap-x-2">
+          <img
+            src="/icons/main.png"
+            alt="ZIPUP 로고"
+            className="w-[32px] h-auto" // ← 아이콘 느낌 유지
+          />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#2E3D86]">
+            리포트 상세 보기
+          </h1>
+        </div>
 
         {/* 오른쪽 PDF 버튼 – 살짝 아래로 내림 */}
         <button
@@ -161,7 +168,7 @@ export default function ReportView() {
         onClick={() => navigate("/report", { state: { data } })}
         className="mt-8 px-6 py-2 bg-gray-200 rounded hover:bg-gray-300"
       >
-        🔙 결과 요약으로 돌아가기
+        🔙 뒤로 돌아가기
       </button>
     </div>
   );

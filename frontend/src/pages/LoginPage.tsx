@@ -24,7 +24,9 @@ export default function LoginPage() {
   }, [])
 
   const handleLogin = (provider: string) => {
-    window.location.href = `${backend}/auth/${provider}`
+    // window.location.href = `${backend}/auth/${provider}`
+    window.location.href = `http://localhost:8000/auth/${provider}`
+
   }
 
 
@@ -35,9 +37,9 @@ export default function LoginPage() {
         <img
           src="/icons/main.png"
           alt="ZIPUP 로고"
-          className="w-[50px]"
+          className="w-[70px]"
         />
-        <span className="text-3xl font-black text-zipup-600">LIVINTERVIEW</span>
+        <span className="text-2xl font-black text-zipup-600 mt-7">LIVINTERVIEW</span>
       </div>
 
       <p className="text-gray-600 text-sm mb-10 text-center">

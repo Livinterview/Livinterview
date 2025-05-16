@@ -35,7 +35,7 @@ export default function Report() {
           alt="ZIPUP 로고"
           className="w-[70px]"
         />
-        <span className="text-2xl font-black text-zipup-600 mt-7">LIVIINTERVIEW</span>
+        <span className="text-2xl font-black text-zipup-600 mt-7">LIVINTERVIEW</span>
       </div>
     </div>   
 

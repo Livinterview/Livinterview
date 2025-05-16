@@ -148,16 +148,16 @@ export default function ReportViewResult({
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
             <thead>
               <tr style={{ backgroundColor: "#E9F0EF", color: "#333", fontSize: "15px" }}>
-                <th style={{ padding: "5px", border: "1px solid #2D7F7F", width: "50px", textAlign: "center", color: "#4c8689", backgroundColor: "#d4e4e5" }}>지표</th>
-                <th style={{ padding: "5px", border: "1px solid #2D7F7F", width: "180px", textAlign: "center", color: "#4c8689" }}>중요도</th>
-                <th style={{ padding: "5px", border: "1px solid #2D7F7F", textAlign: "center", color: "#4c8689" }}>설명</th>
+                <th style={{ padding: "4px", border: "1px solid #2D7F7F", width: "50px", textAlign: "center", color: "#4c8689", backgroundColor: "#d4e4e5" }}>지표</th>
+                <th style={{ padding: "4px", border: "1px solid #2D7F7F", width: "180px", textAlign: "center", color: "#4c8689" }}>중요도</th>
+                <th style={{ padding: "4px", border: "1px solid #2D7F7F", textAlign: "center", color: "#4c8689" }}>설명</th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(scores as Record<string, number>).map(([label, score]) => (
                 <tr key={label}>
-                  <td style={{ padding: "4px", border: "1px solid #2D7F7F", fontWeight: "bold", backgroundColor: "#d4e4e5", textAlign: "center", color: "#4c8689", fontSize: "15px" }}>{label}</td>
-                  <td style={{ padding: "4px", border: "1px solid #2D7F7F", backgroundColor: "white", color: "#0E6D62", fontSize: "14px" }}>
+                  <td style={{ padding: "3px", border: "1px solid #2D7F7F", fontWeight: "bold", backgroundColor: "#d4e4e5", textAlign: "center", color: "#4c8689", fontSize: "15px" }}>{label}</td>
+                  <td style={{ padding: "3px", border: "1px solid #2D7F7F", backgroundColor: "white", color: "#0E6D62", fontSize: "14px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "13px", justifyContent: "center" }}>
                       <span style={{ fontWeight: 600 }} >{score}</span>
                       <div style={{ width: "130px", backgroundColor: "#E5E7EB", height: "14px", borderRadius: "6px" }}>
