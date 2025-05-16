@@ -2,11 +2,25 @@ from fastapi import Depends, APIRouter, Request
 from database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from models import HomieQuestion, HomieDong, SubwayStation, SubwayAdjacentDong
+from models import (
+    HomieQuestion,
+    HomieDong,
+    SubwayStation,
+    SubwayAdjacentDong,
+    HomieHistory,
+    HomieHistoryRecommendedDong,
+    HomieRecommendedDongDescription,
+    HomieQnAHistory,
+    HomieAnswer,
+    HomieIndicatorDescription,
+    HomieStrongIndicator,
+    User,
+)
 import pandas as pd
 import numpy as np
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
+from redis_connect import get_session
 
 router = APIRouter()
 
@@ -21,6 +35,7 @@ def get_questions(db: Session = Depends(get_db)):
             answer.to_dict() for answer in question.homie_answers
         ]
         qna_list.append(question_data)
+    print(f"{qna_list = }")
     return qna_list
 
 
@@ -29,6 +44,7 @@ async def report(request: Request, db: Session = Depends(get_db)):
     json_data = {}
     body = await request.json()
     answers = body.get("answers", [])
+    print(f"{answers = }")
     dongs = db.query(HomieDong).all()
     dong_coefficients = []
     for dong in dongs:
@@ -120,19 +136,30 @@ async def report(request: Request, db: Session = Depends(get_db)):
         main_category = sub_to_main.get(k, None)
         if main_category in main_categories and isinstance(v, int):
             indicators.setdefault(main_category, {})[k] = v
-    # print(f"{indicators = }")
+    print(f"{indicators = }")
     avg_indicators = {
         k: int(sum(v.values()) / len(v.values())) for k, v in indicators.items()
     }
     json_data["8_indicators"] = avg_indicators
-    # print(f"{avg_indicators = }")
+    print(f"{avg_indicators = }")
     offset = int(sum(avg_indicators.values()) / len(avg_indicators.values())) - 10
-    # print(f"{offset = }")
+    print(f"{offset = }")
     top_indicators = [
         k for k, _ in sorted(avg_indicators.items(), key=lambda x: -x[1])[:3]
     ]
-    # print(f"{top_indicators = }")
-    json_data["top_indicators"] = top_indicators
+
+    print(f"{top_indicators = }")
+    json_data["top_indicators"] = [
+        {
+            "main_category": indicator,
+            "sub_category": max(
+                indicators[indicator],  # 서브카테고리 집합
+                key=indicators[indicator].get,  # ← 내부 dict의 get 사용
+            ),
+        }
+        for indicator in top_indicators
+    ]
+    print(f"{json_data = }")
 
     important_indicators = dict()
     for indicator in top_indicators:
@@ -231,21 +258,32 @@ async def report(request: Request, db: Session = Depends(get_db)):
     indicator_chain = indicator_prompt | llm
     indicator_completion = indicator_chain.invoke({"context": context})
     print(f"{indicator_completion.content = }")
-    indicator_discriptions = {
+    indicator_descriptions = {
         category: sentence.strip()
         for category, sentence in zip(
             main_categories, indicator_completion.content.split("\n")
         )
     }
-    print(f"{indicator_discriptions = }, {len(indicator_discriptions) = }")
-    json_data["8_indicator_discriptions"] = indicator_discriptions
+    print(f"{indicator_descriptions = }, {len(indicator_descriptions) = }")
+    json_data["8_indicator_descriptions"] = indicator_descriptions
     numeric_cols = top_n_dongs.select_dtypes(include="number").columns
     top_n_dongs_indicators = []
     for _, row in top_n_dongs.iterrows():
         s = pd.to_numeric(row[numeric_cols], errors="coerce")
         top2 = s.nlargest(2)
         (col1, val1), (col2, val2) = top2.items()  # 라벨·값 튜플 두 개
-        top_n_dongs_indicators.append([sub_to_main[col1], sub_to_main[col2]])
+        top_n_dongs_indicators.append(
+            [
+                {
+                    "main_category": sub_to_main[col1],
+                    "sub_category": col1,
+                },
+                {
+                    "main_category": sub_to_main[col2],
+                    "sub_category": col2,
+                },
+            ]
+        )
     json_data["recommended"] = []
     for idx, dong in enumerate(top_n_dongs.itertuples()):
         context = []
@@ -281,7 +319,12 @@ async def report(request: Request, db: Session = Depends(get_db)):
         for station in primary_stations + adjacent_stations:
             buff.append((station.line, station.name))
         context.append(buff)
-        context.append(top_n_dongs_indicators[idx])
+        context.append(
+            [
+                indicator.get("main_category")
+                for indicator in top_n_dongs_indicators[idx]
+            ]
+        )
         context = str(context)[1:-1]
         print(f"{context = }")
         dong_prompt = PromptTemplate.from_template(
@@ -290,7 +333,7 @@ async def report(request: Request, db: Session = Depends(get_db)):
             너는 사용자가 주거지를 고를 때 각 동에 대한 자연스러운 한국어 문장으로 설명하는 카피라이터다.
 
             [규칙]
-            
+            한줄에 문자의 개수는 120자를 넘지 않는다.
 
             [예시]
             입력: 역촌동, [(6호선, 응암역), (6호선, 구산역), (6호선, 역촌역)], [생활, 안전]
@@ -324,4 +367,239 @@ async def report(request: Request, db: Session = Depends(get_db)):
         }
         json_data["recommended"].append(dong_data)
     print(f"{json_data = }")
+
+    session_id = request.cookies.get("session_id")
+    print(session_id)
+    raw_user = get_session(session_id)
+    # provider별 데이터 정리
+    email = None
+
+    if "email" in raw_user and "name" in raw_user:
+        # Google
+        email = raw_user["email"]
+    elif "kakao_account" in raw_user:
+        # Kakao
+        account = raw_user["kakao_account"]
+        email = account.get("email")
+    elif "email" in raw_user and "mobile" in raw_user:
+        # Naver
+        email = raw_user.get("email")
+
+    user_id = db.query(User.id).filter(User.email == email).first()
+    print(f"{user_id =}")
+    if user_id:
+        user_id = user_id[0]
+
+    intro_text = "\n".join(json_data["intro_text"])
+    new_homie_history = HomieHistory(user_id=user_id, intro=intro_text)
+    db.add(new_homie_history)
+    db.flush()
+    for sub_category, score in answers.items():
+        print(f"{sub_category = }")
+        print(f"{score = }")
+        if sub_category in ["가까운 지하철역", "minSize", "계약형태"]:
+            continue
+        homie_question_id = (
+            db.query(HomieQuestion.id)
+            .filter(HomieQuestion.sub_category == sub_category)
+            .first()[0]
+        )
+        print(f"{homie_question_id = }")
+        homie_answer_id = (
+            db.query(HomieAnswer.id)
+            .filter(
+                HomieAnswer.homie_question_id == homie_question_id,
+                HomieAnswer.score == score,
+            )
+            .first()[0]
+        )
+        print(f"{homie_answer_id = }")
+        new_homie_qna_history = HomieQnAHistory(
+            homie_history_id=new_homie_history.id,
+            homie_question_id=homie_question_id,
+            homie_answer_id=homie_answer_id,
+        )
+        print(f"{new_homie_qna_history = }")
+        db.add(new_homie_qna_history)
+    for indicator, description in json_data["8_indicator_descriptions"].items():
+        new_homie_indicator_description = HomieIndicatorDescription(
+            homie_history_id=new_homie_history.id,
+            indicator=indicator,
+            content=description,
+        )
+        print(f"{new_homie_indicator_description = }")
+        db.add(new_homie_indicator_description)
+    for recommended in json_data["recommended"]:
+        homie_dong_id = db.execute(
+            select(HomieDong.id).filter_by(dong=recommended.get("name", None))
+        ).scalar_one_or_none()
+        new_homie_recommended_dong = HomieHistoryRecommendedDong(
+            homie_history_id=new_homie_history.id, homie_dong_id=homie_dong_id
+        )
+        print(f"{new_homie_recommended_dong = }")
+        db.add(new_homie_recommended_dong)
+        db.flush()
+        for description in recommended.get("description", None):
+            new_homie_description = HomieRecommendedDongDescription(
+                homie_history_recommended_id=new_homie_recommended_dong.id,
+                content=description,
+            )
+            print(f"{new_homie_description = }")
+            db.add(new_homie_description)
+        for indicator in recommended.get("strong_indicators", None):
+            new_strong_indicator = HomieStrongIndicator(
+                main_category=indicator.get("main_category"),
+                sub_category=indicator.get("sub_category"),
+                homie_history_recommended_id=new_homie_recommended_dong.id,
+            )
+            print(f"{new_strong_indicator = }")
+            db.add(new_strong_indicator)
+    db.commit()
+    db.close()
+
     return json_data
+
+
+MAIN_CATEGORIES = ["교통", "편의", "안전", "건강", "녹지", "생활", "놀이", "운동"]
+
+
+def calc_8_and_top_indicators(
+    answers,
+    sub_to_main,
+):
+    """/report 로직을 그대로 옮김."""
+    indicators = {}
+    for sub, score in answers.items():
+        main = sub_to_main.get(sub)
+        if main in MAIN_CATEGORIES and isinstance(score, int):
+            indicators.setdefault(main, {})[sub] = score
+
+    avg_indicators = {k: int(sum(v.values()) / len(v)) for k, v in indicators.items()}
+    # top 3
+    top_indicators = [
+        k for k, _ in sorted(avg_indicators.items(), key=lambda x: -x[1])[:3]
+    ]
+    return avg_indicators, top_indicators
+
+
+from sqlalchemy import text
+
+
+@router.get("/histories")
+async def histories(request: Request, db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(HomieQuestion.sub_category, HomieQuestion.main_category)
+    ).all()
+    sub_to_main = {row.sub_category: row.main_category for row in rows}
+    # ----------------------------------------------------------------
+
+    # ── 0) 세션에서 user 찾기 -------------------------------------------------
+    session_id = request.cookies.get("session_id")
+    raw_user = get_session(session_id) if session_id else {}
+    email = None
+    if "email" in raw_user and "name" in raw_user:
+        email = raw_user["email"]
+    elif "kakao_account" in raw_user:
+        email = raw_user["kakao_account"].get("email")
+    elif "email" in raw_user and "mobile" in raw_user:
+        email = raw_user["email"]
+
+    if email:
+        row = db.execute(
+            select(User.id).where(User.email == email).limit(1)  # 중복이 있어도 첫 행만
+        ).first()  # None | (id,)
+        user_id = row[0] if row else None
+    else:
+        user_id = None  # 로그인 안 됨
+
+    if user_id is None:
+        return []
+
+    # ── 1) 현재 사용자 히스토리 ------------------------------------------------
+    histories = db.scalars(
+        select(HomieHistory).where(HomieHistory.user_id == user_id)
+    ).all()
+
+    result = []
+    for hist in histories:
+        json_data = {"intro_text": hist.intro.split("\n")}
+
+        # --- answers 복원 ----------------------------------------------------
+        answers = {}
+        for qna in db.scalars(
+            select(HomieQnAHistory).where(HomieQnAHistory.homie_history_id == hist.id)
+        ):
+            q = db.get(HomieQuestion, qna.homie_question_id)
+            a = db.get(HomieAnswer, qna.homie_answer_id)
+            if q and a:
+                answers[q.sub_category] = a.score
+
+        avg_ind, top_main = calc_8_and_top_indicators(answers, sub_to_main)
+        json_data["8_indicators"] = avg_ind
+
+        # top_indicators (main+sub)
+        by_main = {}
+        for sub, score in answers.items():
+            by_main.setdefault(sub_to_main[sub], {})[sub] = score
+
+        json_data["top_indicators"] = [
+            {
+                "main_category": mc,
+                "sub_category": max(by_main[mc], key=by_main[mc].get),
+            }
+            for mc in top_main
+        ]
+
+        # --- 8 indicator 설명 -------------------------------------------------
+        desc_rows = db.scalars(
+            select(HomieIndicatorDescription).where(
+                HomieIndicatorDescription.homie_history_id == hist.id
+            )
+        )
+        json_data["8_indicator_descriptions"] = {
+            row.indicator: row.content for row in desc_rows
+        }
+
+        # --- 추천 동 + 강점 지표 ---------------------------------------------
+        rec_rows = db.scalars(
+            select(HomieHistoryRecommendedDong).where(
+                HomieHistoryRecommendedDong.homie_history_id == hist.id
+            )
+        )
+        recommended = []
+        for rec in rec_rows:
+            dong = db.get(HomieDong, rec.homie_dong_id)
+            if not dong:
+                continue
+
+            descs = db.scalars(
+                select(HomieRecommendedDongDescription).where(
+                    HomieRecommendedDongDescription.homie_history_recommended_id
+                    == rec.id
+                )
+            )
+            strong_rows = db.scalars(
+                select(HomieStrongIndicator).where(
+                    HomieStrongIndicator.homie_history_recommended_id == rec.id
+                )
+            )
+
+            recommended.append(
+                {
+                    "name": dong.dong,
+                    "location": f"서울특별시 {dong.district} {dong.dong}",
+                    "strong_indicators": [
+                        {
+                            "main_category": s.main_category,
+                            "sub_category": s.sub_category,
+                        }
+                        for s in strong_rows
+                    ],
+                    "description": [d.content for d in descs],
+                }
+            )
+
+        json_data["recommended"] = recommended
+        result.append(json_data)
+    print(f"{result}")
+    return result
