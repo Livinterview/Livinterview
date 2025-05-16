@@ -14,8 +14,16 @@ from empty_room_gen.masking.run import create_removal_mask
 from chatbot_core.memory.session_memory import get_memory
 import traceback
 import shutil
+from deep_translator import GoogleTranslator
 
 router = APIRouter()
+
+# ──────────────────────────────
+# 감지된 가구들 화면에서 영어를 한국어로 번역하기
+# ──────────────────────────────
+def translate_to_korean(labels: List[str]) -> List[str]:
+    translator = GoogleTranslator(source='en', target='ko')
+    return [translator.translate(label) for label in labels]
 
 # ──────────────────────────────
 # 경로·프롬프트 상수
@@ -80,7 +88,14 @@ async def detect_labels(image_id: str = Form(...)):
     _, _, _, labels, _ = cached
     if not labels:
         return {"status": "fail", "message": "감지된 객체가 없습니다."}
-    return {"status": "success", "labels": sorted(set(labels))}
+    
+    translated = translate_to_korean(sorted(set(labels)))
+
+    return {
+        "status": "success", 
+        "labels": [
+            {"en": en, "ko": ko} for en, ko in zip(sorted(set(labels)), translated)
+        ]}
 
 # ──────────────────────────────
 # 3) 선택 기반 마스크 생성
