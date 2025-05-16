@@ -55,6 +55,7 @@ function SurveyForm() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({ answers: updatedAnswers }),
         });
         if (!res.ok) throw new Error(`서버 에러: ${res.status}`);
