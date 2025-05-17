@@ -600,6 +600,7 @@ async def histories(request: Request, db: Session = Depends(get_db)):
             )
 
         json_data["recommended"] = recommended
+        json_data["created_at"] = hist.created_at
         result.append(json_data)
     print(f"{result}")
     return result
