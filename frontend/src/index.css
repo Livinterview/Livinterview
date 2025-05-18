@@ -49,3 +49,20 @@
     padding: 0;
     color: #222;
   }
+
+  html, body, #root {
+  width: 430px;
+  height: 932px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background-color: #fff;
+  font-family: 'Pretendard-Regular', sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f4f4f4;
+}
