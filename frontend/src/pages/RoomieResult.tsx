@@ -1,14 +1,30 @@
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function RoomieResult() {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const { originalImage, generatedImage, title } = location.state || {}
+  const backendBaseUrl = "http://localhost:8000";
 
-  // 기본 이미지 경로 설정
-  const defaultOriginal = "/icons/images.jpg"
-  const defaultGenerated = "/icons/generate-image.png"
+  const {
+    originalImage = localStorage.getItem("originalImage"),
+    generatedImage = localStorage.getItem("generatedImage"),
+    title,
+  } = location.state || {};
+
+  // 경로 보정
+  const resolvedOriginal = originalImage?.startsWith("/")
+    ? backendBaseUrl + originalImage
+    : originalImage;
+
+  const resolvedGenerated = generatedImage?.startsWith("/")
+    ? backendBaseUrl + generatedImage
+    : generatedImage;
+
+  console.log("generatedImage:", generatedImage);
+
+  const defaultOriginal = "/icons/images.jpg";
+  const defaultGenerated = "/icons/generate-image.png";
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement("a")
@@ -28,7 +44,7 @@ export default function RoomieResult() {
         <div>
           <h2 className="text-lg font-semibold mb-2">🏠 Before</h2>
           <img
-            src={originalImage || defaultOriginal}
+            src={resolvedOriginal || defaultOriginal}
             alt="기존 방"
             className="w-full rounded-lg shadow object-cover"
           />
@@ -38,7 +54,7 @@ export default function RoomieResult() {
         <div>
           <h2 className="text-lg font-semibold mb-2">🎨 After</h2>
           <img
-            src={generatedImage || defaultGenerated}
+            src={resolvedGenerated || defaultGenerated}
             alt="생성된 인테리어"
             className="w-full rounded-lg shadow object-cover"
           />

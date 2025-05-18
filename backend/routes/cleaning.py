@@ -143,8 +143,11 @@ async def run_inpaint(image_id: str = Form(...)):
         if not os.path.exists(input_path):
             return {"status": "fail", "message": "업로드 이미지가 없습니다."}
         mask_path = f"./data/results/{image_id}/merged_mask.png"
+        # 마스크 없으면 원본 이미지 그대로 사용
         if not os.path.exists(mask_path):
-            return {"status": "fail", "message": "마스크 이미지가 없습니다."}
+            print(f"[마스크 없음 → 인페인팅 생략] {image_id}")
+            return {"status": "skipped", "inpainted_url": f"/static/uploads/{image_id}.jpg"}
+
 
         # inpainting
         pipe = INPAINT_PIPE

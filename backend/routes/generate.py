@@ -4,9 +4,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from chatbot_core.chains.controlnet_chain import get_controlnet_chain
+from chatbot_core.chains.decor8_chain import get_decor8prompt_chain
 from chatbot_core.memory.session_memory import get_memory
-from interior.controlnet_inference import interior_with_controlnet
+from interior.decor8_client import request_decor8_design
+from interior.github_uploader import upload_image_to_github
+from pathlib import Path
 
 router = APIRouter()
 load_dotenv()
@@ -31,30 +33,49 @@ async def generate_image(req: GenerateRequest):
         if not summary:
             raise ValueError("요약 결과가 없습니다. 프롬프트도 전달되지 않았습니다.")
 
-        # 2) 구조 설명도 가져오기
-        structure_desc = ""
-        for m in memory.chat_memory.messages:
-            if m.content.startswith("[간략구조]"):
-                structure_desc = m.content.replace("[간략구조]", "").strip()
-                break
 
-        # 3) 프롬프트 생성 (간략구조 + 대화 요약 기반)
-        base_prompt = get_controlnet_chain().run({
+        # 2) 프롬프트 생성 (대화 요약 기반)
+        base_prompt = get_decor8prompt_chain().run({
             "summary": summary
-        }).strip().strip('"')
+        }).strip()
 
-        final_prompt = (
-            f"{structure_desc.strip()} {base_prompt.strip()} "
-            "Do not change the room’s layout, dimensions, wallpaper color, "
-            "floor material, or the positions of the windows and doors, as they are fixed. "
-            "Use the same camera angle and perspective as the original image."
-        )[:2000]
+        final_prompt = f"""
+        Do not modify or remove any existing furniture, structure, walls, or background.
+        Keep the original room exactly as it is.
 
-        # 4) ControlNet 기반 이미지 생성
-        image_path = f"./data/uploads/{req.image_id}.jpg"
-        result_path = interior_with_controlnet(image_path, final_prompt)
-        result_url = result_path.replace("./data", "/data")
-        full_url = f"http://localhost:8000{result_url}"  # 혹은 os.getenv("BACKEND_URL") 등으로 추후 대체
+        {base_prompt}
+
+        Make sure the lighting and shadows match the current scene.
+        Do not add or remove anything else.
+        """.strip()
+
+        # 프롬프트 로그 출력
+        print("[Final Decor8 Prompt]")
+        print(final_prompt)
+        print("[End of Prompt]")
+
+        # 3) Decor8 기반 이미지 생성
+        # 로컬 이미지 경로
+        image_path = Path(f"./data/uploads/{req.image_id}.jpg")
+
+        # GitHub에 업로드하고 raw 이미지 URL 받기
+        raw_image_url = upload_image_to_github(image_path)
+
+        # Decor8 API로 요청
+        save_path = Path(f"./data/staged/{req.image_id}_staged.jpg")
+        result_path = request_decor8_design(image_url=raw_image_url, prompt=final_prompt, save_path=save_path)
+
+        # 프론트에서 볼 수 있게 경로 정리
+        result_url = str(result_path).replace("\\", "/")
+
+        # ./data 혹은 data 폴더를 /data로 교체 (앞에 / 보장)
+        if result_url.startswith("./data"):
+            result_url = result_url.replace("./data", "/data")
+        elif result_url.startswith("data"):
+            result_url = result_url.replace("data", "/data")
+
+        # 완성된 URL
+        full_url = f"http://localhost:8000{result_url}"
 
         return {"image_url": full_url}
 

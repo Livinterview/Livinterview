@@ -20,10 +20,14 @@ export default function RoomieHome() {
 
   return (
     <div className="flex flex-col w-full h-screen relative">
-      <FilterCard onFilterChange={(filters) => {
-        console.log("필터 변경됨", filters);
-        setFilters(filters); // MapView에 전달할 값
-      }} />
+      {!showDetail && ( 
+        <FilterCard
+          onFilterChange={(filters) => {
+            console.log("필터 변경됨", filters);
+            setFilters(filters); // MapView에 전달할 값
+          }}
+        />
+      )}
 
       {/* 지도 영역  */}
       <div className="flex-1">
