@@ -21,7 +21,7 @@ export default function BottomTabBar() {
       </Link>
 
       <Link to="/profile">
-        <div className={`flex flex-col items-center transition ${currentPath === "/settings" ? "text-zipup-600 font-semibold" : "text-gray-500 hover:text-zipup-600"}`}>
+        <div className={`flex flex-col items-center transition ${currentPath === "/profile" ? "text-zipup-600 font-semibold" : "text-gray-500 hover:text-zipup-600"}`}>
           <Settings size={24} />
           <span className="text-xs mt-1">Setting</span>
         </div>

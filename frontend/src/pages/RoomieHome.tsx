@@ -39,10 +39,7 @@ export default function RoomieHome() {
           }}
         />
       </div>
-
-      <div className="h-14">
         <BottomTabBar />
-      </div>
 
       {/* 요약 정보 모달 */}
       {selectedRoom && !showDetail && (
