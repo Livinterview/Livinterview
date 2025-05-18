@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import ChatMessageList from "../components/ChatMessageList";
+import RoomieHeader from "../components/RoomieHeader"; 
 
 interface ChatState {
   imageUrl: string;
@@ -28,7 +29,7 @@ export default function RoomieClean() {
     originalImageId,
   } = state as ChatState;
 
-  type Label = { en: string; ko: string; };
+  type Label = { en: string; ko: string };
   type Step = "askClean" | "labeling";
   const [step, setStep] = useState<Step>("askClean");
   const [labels, setLabels] = useState<Label[]>([]);
@@ -148,32 +149,36 @@ export default function RoomieClean() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* 상단  */}
+    <RoomieHeader />
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <ChatMessageList messages={messages} />
 
       {step === "askClean" && (
-        <div className="space-y-4">
-          {loading
-            ? <p className="text-center text-gray-500 animate-pulse">가구를 감지 중입니다… 🕵️</p>
-            : (
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={() => handleAskClean(true)}
-                  disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl"
-                >
-                  청소할래
-                </button>
-                <button
-                  onClick={() => handleAskClean(false)}
-                  disabled={loading}
-                  className="px-6 py-3 bg-gray-300 rounded-xl"
-                >
-                  이미 깨끗해
-                </button>
-              </div>
-            )
-          }
+        <div className="space-y-4 text-center">
+          {loading ? (
+            <p className="text-center text-gray-500 text-sm animate-pulse">
+              🕵️ 가구를 감지 중입니다... 잠시만 기다려주세요!
+            </p>
+          ) : (
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => handleAskClean(true)}
+                disabled={loading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl"
+              >
+                청소할래
+              </button>
+              <button
+                onClick={() => handleAskClean(false)}
+                disabled={loading}
+                className="px-6 py-3 bg-gray-300 rounded-xl"
+              >
+                이미 깨끗해
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -211,7 +216,7 @@ export default function RoomieClean() {
           )}
         </div>
       )}
-
     </div>
+  </div>
   );
 }
