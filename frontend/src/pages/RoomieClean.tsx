@@ -149,13 +149,14 @@ export default function RoomieClean() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 p-6 space-y-6">
+    <div className="flex flex-col h-screen bg-gray-50">
       {/* 상단  */}
-      <RoomieHeader />
+    <RoomieHeader />
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <ChatMessageList messages={messages} />
 
       {step === "askClean" && (
-        <div className="space-y-4">
+        <div className="space-y-4 text-center">
           {loading ? (
             <p className="text-center text-gray-500 text-sm animate-pulse">
               🕵️ 가구를 감지 중입니다... 잠시만 기다려주세요!
@@ -215,7 +216,7 @@ export default function RoomieClean() {
           )}
         </div>
       )}
-
     </div>
+  </div>
   );
 }
