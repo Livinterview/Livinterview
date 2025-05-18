@@ -168,15 +168,20 @@ check_completion_prompt = PromptTemplate.from_template("""
 """)
 
 
-controlnet_prompt = PromptTemplate.from_template("""
-Generate a one-line English prompt for ControlNet based on the following interior summary.
+decor8_prompt = PromptTemplate.from_template("""
+Generate an English prompt describing interior changes based on the summary.
 
-Only include information about:
-- specific furniture types and their placement (e.g., bed by the window)
-- furniture material, style, or color (e.g., light wood desk, white curtains)
+If the summary mentions an overall style or theme for the room (e.g., Scandinavian, Modern, Antique),
+start the prompt by stating:  
+**"Apply the [style] style to the entire room."**
 
-Exclude:
-- any mention of room mood, atmosphere, or effects like "makes the room look bigger", "adds warmth", etc.
+Then, list all individual items to add using bullet points.
+Each line should:
+- start with "-"
+- describe 1 item including placement, material, color, and any style if mentioned
+
+Include everything mentioned in the summary.
+Exclude emotional tone, mood, or abstract expressions.
 
 User summary:
 {summary}
