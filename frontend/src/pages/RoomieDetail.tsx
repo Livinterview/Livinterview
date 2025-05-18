@@ -21,17 +21,7 @@ export default function RoomDetail({
   const [loading, setLoading] = useState(false);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // 모달 이미지 상태
-  const [currentIndex, setCurrentIndex] = useState(0); //현재 보고 있는 이미지를 챗봇으로 보내기
-
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-6 bg-white">
-        <LoadingSpinner text="방 구조를 분석 중입니다..." />
-      </div>
-    );
-  }
-  
+  const [currentIndex, setCurrentIndex] = useState(0); //현재 보고 있는 이미지를 챗봇으로 보내기  
   const handleCloseImageModal = () => {
     console.log("Closing image modal");
     setSelectedImage(null);
@@ -48,6 +38,12 @@ export default function RoomDetail({
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="fixed inset-0 z-50 bg-white flex flex-col overflow-auto rounded-t-3xl"
     >
+    {loading ? (
+      <div className="flex flex-col items-center justify-center flex-1 p-6">
+        <LoadingSpinner text="방 구조를 분석 중입니다..." />
+      </div>
+    ) : (
+      <>
       <div className="flex justify-end p-4">
         <button
           onClick={onClose}
@@ -192,6 +188,8 @@ export default function RoomDetail({
           AI인테리어 도우미 연결
         </button>
       </div>
+      </>
+    )}
     </motion.div>
   );
 }
