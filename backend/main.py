@@ -14,8 +14,7 @@ from routes.image_download import router as download_router
 from routes.structure_analyze import router as structure_router
 from routes.create_map import router as map_router
 from routes.api import router as api_router
-
-#from routes.vision_analyze import router as vision_router
+from routes.remove_watermark import router as remove_wm_router
 from routes.generate import router as generate_router
 from routes.cleaning import router as cleaning_router
 from routes.roomie import router as roomie_router
@@ -54,6 +53,7 @@ app.include_router(user_router, tags=["User"])
 app.include_router(chat_router, tags=["Chat"])
 app.include_router(download_router, prefix="/vision")
 app.include_router(structure_router, prefix="/vision")
+app.include_router(remove_wm_router, prefix="/image-tools", tags=["ImageTools"])
 app.include_router(generate_router, tags=["Generate"])
 app.include_router(map_router, tags=["Map"])
 app.include_router(cleaning_router, prefix="/cleaning", tags=["Cleaning"])
