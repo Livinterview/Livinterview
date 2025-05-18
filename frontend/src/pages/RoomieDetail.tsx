@@ -16,7 +16,7 @@ export default function RoomDetail({
   const [loading, setLoading] = useState(false);
 
   const defaultImageUrl =
-    "https://d1774jszgerdmk.cloudfront.net/512/36DlDeIYFl33V1mgDe-Cz";
+    "https://raw.githubusercontent.com/jinheesong/assets/main/test2.png";
   const imageUrl = room.imageUrl || defaultImageUrl;
 
   if (loading) {
