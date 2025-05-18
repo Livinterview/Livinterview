@@ -8,9 +8,15 @@ def serialize_dict(d: dict) -> dict:
     return {k: str(v) if isinstance(v, bool) else v for k, v in d.items()}
 
 def create_session(session_id, user_data: dict):
-    r.hset(session_id, mapping=serialize_dict(user_data))
-    r.expire(session_id, SESSION_EXPIRE_SECONDS)
-    return session_id
+    try:
+        serialized = serialize_dict(user_data)
+        for k, v in serialized.items():
+            r.hset(session_id, k, v)
+        r.expire(session_id, SESSION_EXPIRE_SECONDS)
+        return session_id
+    except Exception as e:
+        print(f"Redis session create error: {e}")
+        return None
 
 def get_session(session_id: str):
     return r.hgetall(session_id)
