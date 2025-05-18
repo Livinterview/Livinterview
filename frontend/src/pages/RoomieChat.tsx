@@ -4,6 +4,7 @@ import ChatMessageList from "../components/ChatMessageList";
 import MessageInput from "../components/MessageInput";
 import TypingBubble from "../components/TypingBubble";
 import LoadingSpinner from "../components/LoadingSpinner";
+import RoomieHeader from "../components/RoomieHeader";
 
 interface ChatMessage {
   type: "text" | "image";
@@ -330,6 +331,8 @@ export default function RoomieChat() {
 
     return (
       <div className="flex flex-col h-screen bg-gray-50">
+        <RoomieHeader />
+
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
           {typingText && <TypingBubble text={typingText} />}
