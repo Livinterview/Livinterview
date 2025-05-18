@@ -5,7 +5,7 @@ from langchain_community.chat_message_histories import RedisChatMessageHistory
 
 load_dotenv()
 
-REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
+REDIS_URL = f"redis://:{os.getenv('REDIS_PASSWORD')}@{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
 
 def get_memory(session_id: str) -> ConversationBufferMemory:
     return ConversationBufferMemory(
