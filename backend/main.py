@@ -18,7 +18,7 @@ from routes.api import router as api_router
 #from routes.vision_analyze import router as vision_router
 from routes.generate import router as generate_router
 from routes.cleaning import router as cleaning_router
-# from routes.roomie import router as roomie_router
+from routes.roomie import router as roomie_router
 
 from dotenv import load_dotenv
 
@@ -57,7 +57,7 @@ app.include_router(structure_router, prefix="/vision")
 app.include_router(generate_router, tags=["Generate"])
 app.include_router(map_router, tags=["Map"])
 app.include_router(cleaning_router, prefix="/cleaning", tags=["Cleaning"])
-#app.include_router(roomie_router, prefix="/api", tags=["Roomie"])
+app.include_router(roomie_router, prefix="/api", tags=["Roomie"])
 
 # 정적 파일 서빙
 app.mount("/static", StaticFiles(directory="data"), name="static")

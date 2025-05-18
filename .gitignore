@@ -48,6 +48,9 @@ backend/empty-room-gen/masking/Tag2Text/images/
 **/demo_outputs/
 **/test_images/
 **/inference_outputs/
+*.png
+*.jpg
+backend/empty-room-gen/interior/assets/
 
 # Tensorboard / lightning logs
 lightning_logs/

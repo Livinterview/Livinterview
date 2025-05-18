@@ -52,6 +52,7 @@ tqdm==4.67.1
 scipy==1.15.2
 scikit-learn==1.6.1
 matplotlib==3.10.1
+deep_translator
 
 # ────────── GIS 관련 ──────────
 geopandas
