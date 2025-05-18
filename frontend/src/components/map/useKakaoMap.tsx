@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createCustomMarkerImage, calculateGridSize } from "./markerUtils";
 import { Room } from "../../types/room";
 
@@ -17,8 +17,9 @@ export function useKakaoMap(
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // ✅ 지도는 최초 1회만 생성
+  // 지도는 최초 1회만 생성
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const loadMap = () => {
@@ -76,14 +77,16 @@ export function useKakaoMap(
         };
       }
     }
-  }, []); // ✅ 지도 초기화는 최초 1번만
+  }, []); // 지도 초기화는 최초 1번만
 
-  // ✅ rooms 바뀔 때마다 마커 업데이트
+  // rooms 바뀔 때마다 마커 업데이트
   useEffect(() => {
     const map = mapInstanceRef.current;
     const clusterer = clustererRef.current;
 
     if (!map || !clusterer) return;
+
+    setLoading(true);
 
     const markerImage = createCustomMarkerImage(window.kakao);
 
@@ -117,5 +120,9 @@ export function useKakaoMap(
     } else {
       markers.forEach((marker) => marker.setMap(map));
     }
-  }, [rooms]); // ✅ 마커는 rooms 바뀔 때마다 갱신
+
+    setLoading(false);
+  }, [rooms]);
+
+  return { loading };
 }
