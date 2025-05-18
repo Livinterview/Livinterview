@@ -148,7 +148,8 @@ export default function RoomieClean() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-screen bg-gray-50 p-6 space-y-6">
+
       <ChatMessageList messages={messages} />
 
       {step === "askClean" && (
