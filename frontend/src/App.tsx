@@ -13,6 +13,7 @@ import RoomieClean from "./pages/RoomieClean";
 
 function App() {
   return (
+  <div className="w-[430px] h-[932px] mx-auto overflow-hidden bg-white shadow-lg">
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LoginPage />} />
@@ -28,6 +29,7 @@ function App() {
         <Route path="/roomie/result" element={<RoomieResult />} />
       </Routes>
     </BrowserRouter>
+  </div>
   );
 }
 
