@@ -4,6 +4,7 @@ import ChatMessageList from "../components/ChatMessageList";
 import MessageInput from "../components/MessageInput";
 import TypingBubble from "../components/TypingBubble";
 import LoadingSpinner from "../components/LoadingSpinner";
+import RoomieHeader from "../components/RoomieHeader";
 
 interface ChatMessage {
   type: "text" | "image";
@@ -125,20 +126,38 @@ export default function RoomieChat() {
       const { done, value } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
+      console.log("vvvv수신된 chunk:", JSON.stringify(chunk));
       if (chunk.includes("__END__STREAM__")) break;
 
       fullMessage += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.sender === "bot" && last.type === "text") {
-          return [...prev.slice(0, -1), { ...last, text: last.text + chunk }];
-        } else {
-          return [
+    }
+    const splitIndex = fullMessage.indexOf("볼게… 👀");
+
+    // 볼게 단위로나눔(차피 볼게는고정이니까 ㄱㅊ을듯(야매))
+    if (splitIndex !== -1) {
+      const firstPart = fullMessage.slice(0, splitIndex + "볼게… 👀".length).trim();
+      const remaining = fullMessage.slice(splitIndex + "볼게… 👀".length).trim();
+
+      
+      setMessages((prev) => [
+        ...prev,
+        { type: "text", text: firstPart, sender: "bot" },
+      ]);
+
+      // 두번째 말풍선(분석석)
+      setTimeout(() => {
+        if (remaining) {
+          setMessages((prev) => [
             ...prev,
-            { type: "text", text: chunk, sender: "bot" },
-          ];
+            { type: "text", text: remaining, sender: "bot" },
+          ]);
         }
-      });
+      }, 500); 
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        { type: "text", text: fullMessage.trim(), sender: "bot" },
+      ]);
     }
 
     setTypingText("");
@@ -330,6 +349,8 @@ export default function RoomieChat() {
 
     return (
       <div className="flex flex-col h-screen bg-gray-50">
+        <RoomieHeader />
+
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
           {typingText && <TypingBubble text={typingText} />}

@@ -1,4 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import RoomieHeader from "../components/RoomieHeader";
+
 
 export default function RoomieResult() {
   const location = useLocation();
@@ -37,12 +39,14 @@ export default function RoomieResult() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      <RoomieHeader />
+
       <div className="flex-1 overflow-y-auto p-6 flex flex-col space-y-6">
-        <h1 className="text-2xl font-bold text-center mb-4">Roomie 추천 인테리어</h1>
+        {/* <h1 className="text-2xl font-bold text-center mb-4">Roomie 추천 인테리어</h1> */}
 
         {/* 원본 사진 */}
         <div>
-          <h2 className="text-lg font-semibold mb-2">🏠 Before</h2>
+          <h2 className="text-lg font-semibold mb-2">Before</h2>
           <img
             src={resolvedOriginal || defaultOriginal}
             alt="기존 방"
@@ -52,7 +56,7 @@ export default function RoomieResult() {
 
         {/* 생성된 인테리어 */}
         <div>
-          <h2 className="text-lg font-semibold mb-2">🎨 After</h2>
+          <h2 className="text-lg font-semibold mb-2">After</h2>
           <img
             src={resolvedGenerated || defaultGenerated}
             alt="생성된 인테리어"
