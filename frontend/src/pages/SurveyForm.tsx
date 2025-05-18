@@ -13,6 +13,8 @@ function SurveyForm() {
   // 사용자 응답 저장 객체 (key: 질문 id, value: 선택값 또는 복수 키)
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  // (1) 마지막 질문 마치고 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(false); 
 
   useEffect(() => {
     const load = async () => {
@@ -26,6 +28,18 @@ function SurveyForm() {
   const current = questions[index];
   const navigate = useNavigate();
 
+
+  // (2) 로딩 중일 때 별도 UI 렌더링
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center text-center p-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-6"></div>
+        <p className="text-lg font-semibold text-gray-800 mb-2">삶권 분석 서비스를 가동 중입니다...</p>
+        <p className="text-sm text-gray-500">잠시만 기다려 주세요 🙏</p>
+      </div>
+    );
+  }
+
   if (!current) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,34 +49,44 @@ function SurveyForm() {
   }
 
   // 다음 질문 or 완료 처리
-  const handleAnswer = (value: any) => {
-    // 유효성 체크 (range는 객체, 일반은 string/number)
-    if (
-      value === null ||
-      value === undefined ||
-      (typeof value !== "object" && value === "")
-    ) {
-      alert("답변을 선택해주세요!");
-      return;
-    }
+  // (1) handleAnswer를 async로 선언
+  const handleAnswer = async (value: any) => {
+    // --- 기존 유효성 검사, answers 저장 로직 동일 ---
 
-    // range (객체) 타입은 ...spread 저장, 그 외는 key:value 저장
-    setAnswers((prev) =>
+    // answers 업데이트
+    const updatedAnswers =
       typeof value === "object"
-        ? { ...prev, ...value }
-        : { ...prev, [current.sub_category]: value }
-    );
+        ? { ...answers, ...value }
+        : { ...answers, [current.sub_category]: value };
 
-    // 다음 질문 or 완료 처리
-    if (index < questions.length - 1) {
-      setIndex((i) => i + 1);
+    setAnswers(updatedAnswers);
+
+    // --- 마지막 문항일 때 API 호출 ---
+    if (index >= questions.length - 1) {
+      try {
+        setIsLoading(true); // (3) 로딩 시작
+
+        const res = await fetch("http://localhost:8000/api/report", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ answers: updatedAnswers }),
+        });
+        if (!res.ok) throw new Error(`서버 에러: ${res.status}`);
+        const data = await res.json();
+        console.log("응답:", data);
+        // 필요하다면, 결과를 보여주거나 다른 페이지로 이동
+        navigate("/report", { state: { data } });
+      } catch (err: any) {
+        console.error(err);
+        alert("서버에 데이터를 전송하는 중 오류가 발생했습니다.");
+        setIsLoading(false); // (4) 에러 발생 시 로딩 해제
+      }
     } else {
-      const finalAnswer =
-        typeof value === "object"
-          ? { ...answers, ...value }
-          : { ...answers, [current.sub_category]: value };
-
-      navigate("/report", { state: { answers: finalAnswer } });
+      // 다음 질문으로
+      setIndex((i) => i + 1);
     }
   };
 

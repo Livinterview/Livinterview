@@ -1,4 +1,5 @@
 import { Room } from "../types/room"
+import MapPriceDisplay from "./MapPriceDisplay"
 
 export default function RoomInfo({
   room,
@@ -16,10 +17,14 @@ export default function RoomInfo({
     >
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-bold">{room.title}</h2>
-          <p className="text-sm text-gray-600">{room.address}</p>
+          <h2 className="text-lg font-bold">{room.room_title}</h2>
+          <p className="text-sm text-gray-600">{room.dong_name}</p>
           <p className="text-blue-600 font-semibold mt-1">
-            {room.price}만원 / {room.size}평
+            <MapPriceDisplay
+              priceType={room.price_type}
+              deposit={room.deposit}
+              monthly={room.monthly}
+            />
           </p>
         </div>
         <button onClick={(e) => {

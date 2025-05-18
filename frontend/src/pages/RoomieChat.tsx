@@ -41,9 +41,16 @@ export default function RoomieChat() {
   const [isSending, setIsSending] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [summaryText, setSummaryText] = useState<string | null>(null);
-
   const bottomRef = useRef<HTMLDivElement>(null);
   const didInit = useRef(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const handleImageClick = (src: string) => {
+    console.log("🖼️ 이미지 클릭됨:", src);
+    setModalImageUrl(src);
+    setModalOpen(true);
+  };
+ 
 
   console.log("🔍 RoomieChat state", {
   imageUrl,
@@ -318,13 +325,13 @@ export default function RoomieChat() {
 
 
   if (isAnalyzing) {
-  return <LoadingSpinner text="방을 불러오는 중이에요..." />;
-}
+    return <LoadingSpinner text="방을 불러오는 중이에요..." />;
+  }
 
     return (
       <div className="flex flex-col h-screen bg-gray-50">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <ChatMessageList messages={messages} />
+          <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
           {typingText && <TypingBubble text={typingText} />}
           <div ref={bottomRef} />
         </div>
@@ -337,6 +344,31 @@ export default function RoomieChat() {
           sendMessage={sendMessage}
           summarizeAndGenerateImage={summarize}
         />
+
+        {/* 추가: 이미지 모달 렌더링 */}
+        {modalOpen && modalImageUrl && (
+          <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
+          onClick={() => setModalOpen(false)}
+        >
+          <div className="relative">
+            {/* 추가: 모달 닫기 버튼 */}
+            <button
+              className="absolute top-2 right-2 bg-white rounded-full p-1 text-black"
+              onClick={() => setModalOpen(false)}
+            >
+              X
+            </button>
+            <img
+              src={modalImageUrl}
+              alt="확대 이미지"
+              className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+              onError={() => console.error("모달 이미지 로드 실패:", modalImageUrl)}
+            />
+            </div>
+      </div>
+      )}
       </div>
     );
   }

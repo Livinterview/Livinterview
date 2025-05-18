@@ -10,6 +10,7 @@ from sqlalchemy import (
     TEXT,
     Float,
     JSON,
+    BigInteger,
 )
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func, expression
@@ -41,7 +42,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
-    email = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False, unique=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
     expired_at = Column(TIMESTAMP, nullable=True)
     state = Column(Enum(StateEnum), server_default=expression.text("'active'"))
@@ -70,7 +71,7 @@ class HomieQuestion(Base):
     __tablename__ = "Homie_questions"
 
     id = Column(SmallInteger, primary_key=True, autoincrement=True)
-    main_category = Column(String(10), nullable=False)
+    main_category = Column(String(2), nullable=False)
     sub_category = Column(String(10), nullable=False)
     content = Column(String(50), nullable=False)
     input_type = Column(Enum(TypeEnum), nullable=False)
@@ -140,11 +141,32 @@ class HomieHistory(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    intro = Column(TEXT, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     user = relationship("User", back_populates="homie_histories")
     homie_qna_histories = relationship(
         "HomieQnAHistory", back_populates="homie_history"
     )
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+class HomieIndicatorDescription(Base):
+    __tablename__ = "Homie_indicator_descriptions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    homie_history_id = Column(Integer, ForeignKey("Homie_histories.id"), nullable=False)
+    indicator = Column(String(2), nullable=False)
+    content = Column(TEXT, nullable=False)
 
     def __repr__(self):
         cols = [
@@ -185,6 +207,68 @@ class HomieQnAHistory(Base):
         }
 
 
+class HomieHistoryRecommendedDong(Base):
+    __tablename__ = "Homie_history_recommended_dongs"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    homie_history_id = Column(Integer, ForeignKey("Homie_histories.id"), nullable=False)
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+class HomieStrongIndicator(Base):
+    __tablename__ = "Homie_strong_indicators"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    main_category = Column(String(2), nullable=False)
+    sub_category = Column(String(10), nullable=False)
+    homie_history_recommended_id = Column(
+        Integer, ForeignKey("Homie_history_recommended_dongs.id"), nullable=False
+    )
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+class HomieRecommendedDongDescription(Base):
+    __tablename__ = "Homie_recommended_dong_descriptions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    content = Column(TEXT, nullable=False)
+    homie_history_recommended_id = Column(
+        Integer, ForeignKey("Homie_history_recommended_dongs.id"), nullable=False
+    )
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
 class HomieDong(Base):
     __tablename__ = "Homie_dongs"
     id = Column(SmallInteger, primary_key=True, autoincrement=True)
@@ -192,6 +276,9 @@ class HomieDong(Base):
     dong = Column(String(6), nullable=False)
     homie_dong_coefficients = relationship(
         "HomieDongCoefficient", back_populates="homie_dong"
+    )
+    subway_adjacent_dong = relationship(
+        "SubwayAdjacentDong", back_populates="homie_dong"
     )
 
     def __repr__(self):
@@ -268,6 +355,8 @@ class SeoulRoom(Base):
     lng = Column(Float)
     floor = Column(String(20))
     area_m2 = Column(Float)
+    deposit = Column(BigInteger)
+    monthly = Column(Integer)
     maintenance_fee = Column(Integer)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
@@ -287,7 +376,39 @@ class SeoulRoom(Base):
 class SubwayStation(Base):
     __tablename__ = "Subway_stations"
     id = Column(SmallInteger, primary_key=True, autoincrement=True)
-    name = Column(String(10), nullable=False)
+    name = Column(String(20), nullable=False)
+    line = Column(String(10), nullable=False)
+    lat = Column(DECIMAL(9, 6), nullable=False)
+    lon = Column(DECIMAL(9, 6), nullable=False)
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
+    subway_adjacent_dongs = relationship(
+        "SubwayAdjacentDong", back_populates="subway_station"
+    )
+
+    def __repr__(self):
+        cols = [
+            f"{column.name}={getattr(self, column.name)}"
+            for column in self.__table__.columns
+        ]
+        return f"<{self.__class__.__name__}({', '.join(cols)})>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+class SubwayAdjacentDong(Base):
+    __tablename__ = "Subway_adjacent_dongs"
+    id = Column(SmallInteger, primary_key=True, autoincrement=True)
+    subway_station_id = Column(
+        SmallInteger, ForeignKey("Subway_stations.id"), nullable=False
+    )
+    homie_dong_id = Column(SmallInteger, ForeignKey("Homie_dongs.id"), nullable=False)
+    subway_station = relationship(
+        "SubwayStation", back_populates="subway_adjacent_dongs"
+    )
+    homie_dong = relationship("HomieDong", back_populates="subway_adjacent_dong")
 
     def __repr__(self):
         cols = [

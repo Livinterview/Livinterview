@@ -8,7 +8,7 @@ lama-venv/
 .DS_Store
 
 # models/
-# data/
+data/
 node_modules/
 dist/
 *.tsbuildinfo
@@ -48,8 +48,13 @@ backend/empty-room-gen/masking/Tag2Text/images/
 **/demo_outputs/
 **/test_images/
 **/inference_outputs/
+*.png
+*.jpg
+backend/empty-room-gen/interior/assets/
 
 # Tensorboard / lightning logs
 lightning_logs/
 tb_logs/
 outputs/
+__pycache__/
+*.pyc

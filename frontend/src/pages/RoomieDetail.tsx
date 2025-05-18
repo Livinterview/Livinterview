@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import MapPriceDisplay from "../components/MapPriceDisplay"
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 export default function RoomDetail({
   room,
@@ -15,9 +20,9 @@ export default function RoomDetail({
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const defaultImageUrl =
-    "https://raw.githubusercontent.com/jinheesong/assets/main/test2.png";
-  const imageUrl = room.imageUrl || defaultImageUrl;
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // 모달 이미지 상태
+  const [currentIndex, setCurrentIndex] = useState(0); //현재 보고 있는 이미지를 챗봇으로 보내기
+
 
   if (loading) {
     return (
@@ -26,6 +31,14 @@ export default function RoomDetail({
       </div>
     );
   }
+  
+  const handleCloseImageModal = () => {
+    console.log("Closing image modal");
+    setSelectedImage(null);
+  };  
+  const imgUrls: string[] = typeof room.img_url_list === "string"
+    ? JSON.parse(room.img_url_list)
+    : room.img_url_list;
 
   return (
     <motion.div
@@ -44,19 +57,84 @@ export default function RoomDetail({
         </button>
       </div>
 
-      <div className="w-full h-60 bg-gray-100 flex items-center justify-center">
-        <img
-          src={imageUrl}
-          alt="매물 사진"
-          className="object-cover w-full h-full"
-        />
+      {/* 이미지 슬라이드 */}
+      <div className="w-full h-90 bg-gray-100">
+        {Array.isArray(imgUrls) && imgUrls.length > 0 ? (
+          <Swiper
+            spaceBetween={10}
+            slidesPerView={1}
+            navigation
+            modules={[Navigation]} // 화살표 작동 모듈
+            onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+            className="w-full h-72"
+          >
+            {imgUrls.map((url, index) => (
+              <SwiperSlide key={index}>
+                <img
+                  src={url}
+                  alt={`매물 사진 ${index + 1}`}
+                  className="object-cover w-full h-72 cursor-pointer"
+                  onClick={() => setSelectedImage(url)}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="flex items-center justify-center w-full h-full">
+            <img
+              src="/icons/report/life/center.svg"
+              alt="기본 이미지"
+              className="object-contain w-20 h-20"
+            />
+          </div>
+        )}
       </div>
 
+      {/* 선택된 이미지 모달 */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex justify-center items-center">
+          <div className="relative w-full h-full flex justify-center">
+            <Swiper
+              spaceBetween={10}
+              slidesPerView={1}
+              initialSlide={imgUrls.indexOf(selectedImage)} // 초기 선택된 이미지로 시작
+              navigation
+              modules={[Navigation]}
+              className="w-full h-full"
+            >
+              {imgUrls.map((url, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={url}
+                    alt={`Selected image ${index + 1}`}
+                    className="object-contain w-full h-full"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent Swiper from capturing the click
+                handleCloseImageModal();
+              }}
+              className="absolute top-4 right-4 text-white text-2xl font-bold z-[100]" // Higher z-index
+            >
+              X
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 상세 정보 */}
       <div className="p-6 text-left space-y-4">
-        <h2 className="text-2xl font-bold">{room.title}</h2>
-        <p className="text-gray-600">{room.address}</p>
+        <h2 className="text-2xl font-bold">{room.room_title}</h2>
+        <p className="text-gray-600">{room.dong_name}</p>
         <p className="text-xl font-semibold text-blue-600">
-          💰 {room.price}만원 / {room.size}평
+          💰 <MapPriceDisplay
+                        priceType={room.price_type}
+                        deposit={room.deposit}
+                        monthly={room.monthly}
+                      />
         </p>
         <p className="text-sm text-gray-500">※ 본 정보는 예시.</p>
 
@@ -72,7 +150,7 @@ export default function RoomDetail({
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ image_url: imageUrl }),
+                  body: JSON.stringify({ image_url: imgUrls[currentIndex] }),
                 }
               );
               const { image_id } = await downloadRes.json();
@@ -95,8 +173,8 @@ export default function RoomDetail({
               // 3) RoomieClean 화면으로 이동
               navigate("/roomie/clean", {
                 state: {
-                  imageUrl,
-                  title: room.title || "방 정보",
+                  imageUrl: imgUrls[currentIndex],
+                  title: room.room_title || "방 정보",
                   sessionId,
                   imageId: image_id,
                   originalImageId: image_id,

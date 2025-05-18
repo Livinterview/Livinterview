@@ -1,85 +1,175 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-// 분리된 페이지 컴포넌트 import
+interface RecommendedItem {
+  name: string;
+  location: string;
+  description: string[];
+}
+
+
+// 분리된 페이지
 import ReportViewCover from "./ReportViewCover";
 import ReportViewGuide from "./ReportViewGuide";
 import ReportViewResult from "./ReportViewResult";
+import ReportViewInfo from "./ReportViewInfo";
+import ReportViewLast from "./ReportViewLast";
 
 export default function ReportView() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // fallback: 값이 없을 경우를 대비한 기본 mock 데이터
-  const answers = (location.state?.answers as Record<string, string>) || {
-    "1-subway": "보통이다",
-    "2-convenience": "자주 간다",
-    "3-police": "어느 정도 가까우면 좋다",
-  };
+  // 🔐 사용자 정보 세션에서 가져오기
+  const storedUser = sessionStorage.getItem("user");
+  const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+  const userName = parsedUser?.name || "이름 없음";
+  
+
+  // 📋 전체 리포트 데이터 추출
+  const data = location.state?.data;
+
+  // 개별 변수로 분리
+  const scores = data?.["8_indicators"] ?? {};
+  const topIndicators = data?.top_indicators ?? [];
+  const introText = data?.intro_text ?? [];
+  const eightIndicatorDescriptions = data?.["8_indicator_discriptions"] ?? {};
+
+  const recommended = data?.recommended ?? [];
 
   const reportRef = useRef<HTMLDivElement>(null);
+  const [mapReady, setMapReady] = useState(false);
 
-  // PDF 다운로드 함수
-  const handleDownloadPDF = async () => {
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "px",
-      format: [794, 1123],
-    });
+  // 지도 생성 요청 (추천 동네 기준)
+  useEffect(() => {
+    const generateAllMaps = async () => {
+      let successCount = 0;
+      for (const item of recommended) {
+        const fullLocation = item.location;
+        try {
+          const res = await fetch("http://localhost:8000/generate-map", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ full_location: fullLocation }),
+          });
 
-    const pages = ["pdf-cover", "pdf-guide", "pdf-result"];
-    for (let i = 0; i < pages.length; i++) {
-      const element = document.getElementById(pages[i]);
-      if (element) {
-        if (i > 0) pdf.addPage();
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL("image/jpeg", 1.0);
-        pdf.addImage(imgData, "JPEG", 0, 0, 794, 1123);
+          if (!res.ok) {
+            const error = await res.json();
+            console.error("❌ 지도 생성 실패:", fullLocation, error);
+            continue;
+          }
+
+          console.log("✅ 지도 생성 완료:", fullLocation);
+          successCount += 1;
+        } catch (error) {
+          console.error("❌ 네트워크 오류:", fullLocation, error);
+        }
       }
+
+      if (successCount === recommended.length) {
+        setMapReady(true);
+      }
+    };
+
+    if (recommended.length > 0) {
+      generateAllMaps();
+    }
+  }, [recommended]);
+
+  // 📄 PDF 다운로드
+  const handleDownloadPDF = async () => {
+    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
+
+    const pages = [
+      "pdf-cover",
+      "pdf-guide",
+      "pdf-result",
+      ...recommended.map((_: RecommendedItem, idx: number) => `pdf-info-${idx}`),
+      "pdf-last"
+    ];
+
+    for (let i = 0; i < pages.length; i++) {
+      const el = document.getElementById(pages[i]);
+      if (!el) continue;
+      if (i > 0) pdf.addPage();
+
+      await document.fonts.ready;
+      await new Promise((res) => setTimeout(res, 200));
+
+      const canvas = await html2canvas(el, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+      });
+
+      pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 0, 0, 794, 1123);
     }
 
     pdf.save("homie_report.pdf");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 py-12 px-4 overflow-x-hidden">
-      {/* 상단 제목 + PDF 버튼을 수평 정렬 */}
-      <div className="w-full max-w-[794px] mb-6 text-center">
-        <h1 className="text-4xl font-bold text-blue-600">리포트 상세 보기</h1>
-      </div>
+    <div className="min-h-screen flex flex-col items-center bg-gray-100 py-12 px-4">
+      {/* 상단 정렬 라인 – w-[794px] 기준 */}
+      <div className="w-[794px] mx-auto relative mb-6">
 
-      <div className="w-full max-w-[794px] flex justify-end mb-8 px-2">
+        {/* 가운데 정렬된 타이틀 */}
+        <div className="flex items-center justify-center gap-x-2">
+          <img
+            src="/icons/main.png"
+            alt="ZIPUP 로고"
+            className="w-[32px] h-auto" // ← 아이콘 느낌 유지
+          />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#2E3D86]">
+            리포트 상세 보기
+          </h1>
+        </div>
+
+        {/* 오른쪽 PDF 버튼 – 살짝 아래로 내림 */}
         <button
           onClick={handleDownloadPDF}
-          className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+          className="absolute right-0 top-[80px] px-4 py-2 bg-[#2E3D86] text-white text-sm font-medium rounded-lg shadow hover:bg-[#1f2b63] transition print:hidden"
         >
           📄 PDF 다운로드
         </button>
       </div>
-
-      {/* 리포트 페이지 (캡처 대상) */}
-      <div
-        ref={reportRef}
-        id="report-page"
-        style={{ width: "794px", margin: "0 auto" }}
-        className="flex flex-col items-center gap-12"
-      >
+      {/* 리포트 전체 페이지 (A4 비율 유지) */}
+      <div ref={reportRef} id="report-page" className="flex flex-col gap-0">
         <ReportViewCover />
         <ReportViewGuide />
-        <ReportViewResult />
+        <ReportViewResult 
+          userName={userName} 
+          topIndicators={topIndicators} 
+          introText = {introText}
+          scores={scores} 
+          eightIndicatorDescriptions={eightIndicatorDescriptions} 
+        />
+
+        {/* 추천 동네 반복 렌더링 */}
+        {recommended.map((item: RecommendedItem, idx: number) => (
+          <ReportViewInfo
+            key={idx}
+            index={idx}
+            dongName={item.name}
+            fullLocation={item.location}
+            userName={userName}
+            topIndicators={topIndicators}
+            mapReady={mapReady}
+            description={item.description}
+          />
+        ))}
+
+        <ReportViewLast />
       </div>
 
-      {/* 하단 네비게이션 */}
-      <div className="flex gap-4 mt-10">
-        <button
-          onClick={() => navigate("/report", { state: { answers } })}
-          className="px-6 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-        >
-          🔙 결과 요약으로 돌아가기
-        </button>
-      </div>
+      {/* 결과 요약으로 돌아가기 */}
+      <button
+        onClick={() => navigate("/report", { state: { data } })}
+        className="mt-8 px-6 py-2 bg-gray-200 rounded hover:bg-gray-300"
+      >
+        🔙 뒤로 돌아가기
+      </button>
     </div>
   );
 }
