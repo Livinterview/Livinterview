@@ -152,41 +152,68 @@ export default function RoomDetail({
                   );
                   const { image_id } = await downloadRes.json();
 
-                  const structureRes = await fetch(
-                    "http://localhost:8000/vision/analyze-brief",
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        session_id: sessionId,
-                        image_id,
-                      }),
-                    }
-                  );
-                  const structureData = await structureRes.json();
+              // 2) 워터마크 제거 요청 (실패해도 다음 단계로 진행)
+              let cleaned_url = imgUrls[currentIndex]; 
+              try {
+                const wmRes = await fetch("http://localhost:8000/image-tools/remove-watermark", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ image_id }),
+                });
 
-                  navigate("/roomie/clean", {
-                    state: {
-                      imageUrl: imgUrls[currentIndex],
-                      title: room.room_title || "방 정보",
-                      sessionId,
-                      imageId: image_id,
-                      originalImageId: image_id,
-                    },
-                  });
-                } catch (err) {
-                  console.error("AI 인테리어 연결 실패:", err);
-                  alert("AI 인테리어 준비 중 오류가 발생했습니다.");
-                } finally {
-                  setLoading(false);
+                if (!wmRes.ok) {
+                  console.warn("워터마크 제거 실패 (응답 에러)", wmRes.status);
+                } else {
+                  const wmData = await wmRes.json();
+                  console.log("워터마크 제거 성공:", wmData);
+                  cleaned_url = wmData.cleaned_url;
                 }
-              }}
-              className="w-full mt-4 bg-zipup-600 text-white text-sm py-3 rounded-xl hover:bg-blue-700 transition"
-            >
-              AI인테리어 도우미 연결
-            </button>
-          </div>
-        </>
+              } catch (err) {
+                console.warn("워터마크 제거 중 예외 발생:", err);
+              }
+
+              // 3) 구조 분석
+              const structureRes = await fetch(
+                "http://localhost:8000/vision/analyze-brief",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    session_id: sessionId,
+                    image_id, 
+                  }),
+                }
+              );
+              const structureData = await structureRes.json();
+
+
+              const timestamp = Date.now();
+              const cleanedUrlWithVersion = cleaned_url + `?v=${timestamp}`;
+
+              // 4) RoomieClean 화면으로 이동
+              navigate("/roomie/clean", {
+                state: {
+                  imageUrl: cleanedUrlWithVersion,
+                  title: room.room_title || "방 정보",
+                  sessionId,
+                  imageId: image_id,
+                  originalImageId: image_id,
+                  brief: structureData.brief, 
+                },
+              });
+            } catch (err) {
+              console.error("AI 인테리어 연결 실패:", err);
+              alert("AI 인테리어 준비 중 오류가 발생했습니다.");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="w-full mt-4 bg-zipup-600 text-white text-sm py-3 rounded-xl hover:bg-blue-700 transition"
+        >
+          AI인테리어 도우미 연결
+        </button>
+      </div>
+      </>
       )}
     </motion.div>
   );

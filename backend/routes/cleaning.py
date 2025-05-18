@@ -75,7 +75,7 @@ async def detect_objects(image_id: str = Form(...)):
         return {"status": "success", "labels": sorted(set(labels))}
     except Exception:
         traceback.print_exc()
-        return {"status": "error", "message": "감지 중 오류 발생"}
+        return {"status": "error", "message": "객체 감지 중 예외 발생"}
 
 # ──────────────────────────────
 # 2) 캐시된 라벨 반환
