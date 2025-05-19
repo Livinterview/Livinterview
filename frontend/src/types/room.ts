@@ -1,12 +1,16 @@
 export interface Room {
     id: string
-    room_title: string
     dong_name: string
+    room_type: string
+    room_title: string
+    room_desc: string
+    price_type: string
+    img_url_list?: string
     lat: number
     lng: number
+    floor: string
     area_m2: number
-    img_url_list?: string
     deposit: number
     monthly: number
-    price_type: string
+    maintenance_fee : number
   }
