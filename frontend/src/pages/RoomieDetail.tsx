@@ -11,6 +11,7 @@ import type { Swiper as SwiperClass } from 'swiper/types';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+
 export default function RoomDetail({
   room,
   onClose,
@@ -123,7 +124,7 @@ export default function RoomDetail({
                     e.stopPropagation();
                     handleCloseImageModal();
                   }}
-                  className="absolute top-4 right-4 text-white text-2xl font-bold z-[100]"
+                  className="absolute top-4 right-4 text-white font-bold z-[100]"
                 >
                   X
                 </button>

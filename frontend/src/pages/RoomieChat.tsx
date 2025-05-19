@@ -5,6 +5,7 @@ import MessageInput from "../components/MessageInput";
 import TypingBubble from "../components/TypingBubble";
 import LoadingSpinner from "../components/LoadingSpinner";
 import RoomieHeader from "../components/RoomieHeader";
+import ImageModal from "../components/ImageModal";
 
 interface ChatMessage {
   type: "text" | "image";
@@ -372,28 +373,12 @@ export default function RoomieChat() {
 
         {/* 추가: 이미지 모달 렌더링 */}
         {modalOpen && modalImageUrl && (
-          <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
-          onClick={() => setModalOpen(false)}
-        >
-          <div className="relative">
-            {/* 추가: 모달 닫기 버튼 */}
-            <button
-              className="absolute top-2 right-2 bg-white rounded-full p-1 text-black"
-              onClick={() => setModalOpen(false)}
-            >
-              X
-            </button>
-            <img
-              src={modalImageUrl}
-              alt="확대 이미지"
-              className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
-              onClick={(e) => e.stopPropagation()}
-              onError={() => console.error("모달 이미지 로드 실패:", modalImageUrl)}
-            />
-            </div>
-      </div>
-      )}
+          <ImageModal
+            imageUrl={modalImageUrl ?? ""}
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
       </div>
     );
   }
