@@ -37,7 +37,7 @@ RAM_CKPT       = os.path.join(CHECKPOINT_DIR, "ram_swin_large_14m.pth")
 positive_prompt = "a completely empty room. minimalist. clean. nothing inside."
 negative_prompt = (
     "furniture, objects, door, table, chairs, decoration, plant, curtain, "
-    "shelf, carpet, lighting fixture, window, artwork, clutter"
+    "shelf, carpet, lighting fixture, artwork, clutter"
 )
 
 # ──────────────────────────────
@@ -176,6 +176,8 @@ async def run_inpaint(image_id: str = Form(...)):
 
         result.resize(orig.size, Image.LANCZOS).save(output_path)
         # 구조 분석을 위해 uploads 경로에도 저장
+        final_path = f"./data/uploads/blank/{image_id}.jpg"
+        os.makedirs(os.path.dirname(final_path), exist_ok=True)
         shutil.copy(output_path, final_path)
         return {"status": "success", "inpainted_url": f"/static/results/{image_id}/sd_inpainted_room.png"}
 

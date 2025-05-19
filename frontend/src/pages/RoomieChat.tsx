@@ -46,6 +46,7 @@ export default function RoomieChat() {
   const didInit = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [showGeneratingText, setShowGeneratingText] = useState(false);
   const handleImageClick = (src: string) => {
     console.log("🖼️ 이미지 클릭됨:", src);
     setModalImageUrl(src);
@@ -174,20 +175,20 @@ export default function RoomieChat() {
     setIsSending(true);
     setTypingText("");
 
-    if (summaryText && ["응", "yes", "네"].includes(userMsg.toLowerCase())) {
-      // 1. 스트리밍 출력용 텍스트
+    if (summaryText && ["응", "yes", "네", "ㅇㅇ", "넵", "맞아", "좋아", "굿", "웅", "긔긔", "넹", "ㅇ", "ㄱㄱ"].includes(userMsg.toLowerCase())) {
       const message = "그럼 이대로 인테리어 해줄게! 잠시만 기다려줘.";
 
-      setTypingText(""); // 혹시 남은 스트리밍 있으면 초기화
+      setTypingText("");
       for (const ch of message) {
-        await new Promise((r) => setTimeout(r, 30)); // 부드러운 출력
+        await new Promise((r) => setTimeout(r, 30));
         setTypingText((prev) => prev + ch);
       }
 
       setMessages((prev) => [...prev, { type: "text", text: message, sender: "bot" }]);
-      setTypingText(""); // 스트리밍 종료
+      setTypingText("");
 
-      // 2. 바로 이미지 생성 + 이동
+      setShowGeneratingText(true);
+
       await generateImageAndNavigate(summaryText);
       setIsSending(false);
       return;
@@ -313,11 +314,11 @@ export default function RoomieChat() {
       }).then((r) => r.json());
 
       localStorage.setItem("generatedImage", image_url);
-      localStorage.setItem("originalImage", blankRoomUrl ?? imageUrl);
+      localStorage.setItem("originalImage", imageUrl);
 
       navigate("/roomie/result", {
         state: {
-          originalImage: blankRoomUrl ?? imageUrl,
+          originalImage: imageUrl,
           generatedImage: image_url,
           title,
         },
@@ -332,20 +333,12 @@ export default function RoomieChat() {
 
     const last = messages[messages.length - 1];
     if (last?.sender === "bot" && last.text?.includes("좋아! 이대로 방을 꾸며볼게")) {
-      const run = async () => {
-        console.log("🚀 자동 생성 흐름 트리거");
-        await generateImageAndNavigate(summaryText);
-      };
-      run();
+      setShowGeneratingText(true); 
+      generateImageAndNavigate(summaryText); 
     }
 
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typingText]);
-
-
-  if (isAnalyzing) {
-    return <LoadingSpinner text="방을 불러오는 중이에요..." />;
-  }
 
     return (
       <div className="flex flex-col h-screen bg-gray-50">
@@ -354,6 +347,13 @@ export default function RoomieChat() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
           {typingText && <TypingBubble text={typingText} />}
+
+          {showGeneratingText && (
+            <p className="text-center text-gray-500 text-sm animate-pulse mb-4">
+              🛋️ 방을 꾸미는 중입니다... 잠시만 기다려주세요!
+            </p>
+          )}
+
           <div ref={bottomRef} />
         </div>
 

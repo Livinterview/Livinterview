@@ -58,7 +58,6 @@ export default function RoomieClean() {
       navigate("/roomie/chat", {
         state: {
           imageUrl,
-          blankRoomUrl: imageUrl,
           imageId: passedImageId,
           originalImageId,
           title,
@@ -127,8 +126,8 @@ export default function RoomieClean() {
       // navigate
       navigate("/roomie/chat", {
         state: {
-          imageUrl: inpainted_url,
-          blankRoomUrl: inpainted_url,
+          imageUrl,                             // 워터마크 제거된 이미지
+          blankRoomUrl: inpainted_url,         // 청소된 이미지 (구조 분석 용)
           imageId: passedImageId,
           originalImageId,
           title,

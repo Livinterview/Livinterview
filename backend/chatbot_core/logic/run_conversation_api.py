@@ -107,7 +107,10 @@ async def run_initial_prompt(session_id: str, image_id: str, is_clean: bool = Fa
 
     # 무조건 구조 분석 수행
     logger.info("[run_initial_prompt] 구조 분석 시작")
-    local_path = f"./data/uploads/{image_id}.jpg"
+    local_path = (
+        f"./data/uploads/blank/{image_id}.jpg" if is_clean
+        else f"./data/uploads/{image_id}.jpg"
+    )
     
     # 상세 구조
     detailed_msg = await detailed_structure_chain.ainvoke({"image_path": local_path})
@@ -164,7 +167,7 @@ async def run_user_turn(user_input: str, session_id: str):
             text=user_input
         ).strip().upper()
 
-        if decision == ("yes", "응", "네", "그래", "맞아"):
+        if decision == ("YES", "yes"):
             detailed = memory.variables.get("detailed_structure", "")
             final_summary = (
                 f"{detailed} Also, here’s a quick recap: {last_summary}"

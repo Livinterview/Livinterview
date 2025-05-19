@@ -5,6 +5,7 @@ import cv2, numpy as np, torch, os, traceback
 from diffusers import StableDiffusionInpaintPipeline, DDIMScheduler
 from urllib.parse import urljoin
 import shutil
+from torch.cuda.amp import autocast
 
 API_BASE = "http://localhost:8000"
 
@@ -15,10 +16,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
     "stabilityai/stable-diffusion-2-inpainting",
     torch_dtype=torch.float16,
-    revision="fp16",  # <- 이거 없으면 float32 돌아감
-    scheduler=DDIMScheduler.from_pretrained(
-        "stabilityai/stable-diffusion-2-inpainting", subfolder="scheduler"
-    )
+    revision="fp16"
 ).to(device)
 
 DEBUG_DIR = "./data/debug"
@@ -90,13 +88,20 @@ async def remove_watermark(req: WatermarkRequest):
         img_512  = orig.resize((512, 512), Image.LANCZOS)
         mask_512 = mask.resize((512, 512), Image.LANCZOS)
 
-        result = pipe(
-            prompt="same background, no watermark, realistic completion",
-            image=img_512,
-            mask_image=mask_512,
-            guidance_scale=7.5,
-            num_inference_steps=50
-        ).images[0]
+        # 디바이스 & 메모리 디버깅 로그
+        print("[DEBUG] torch.cuda.is_available:", torch.cuda.is_available())
+        print("[DEBUG] pipe.unet.device:", next(pipe.unet.parameters()).device)
+        print("[DEBUG] VRAM allocated:", torch.cuda.memory_allocated() / 1e6, "MB")
+        print("[DEBUG] VRAM reserved:", torch.cuda.memory_reserved() / 1e6, "MB")
+
+        with autocast(enabled=(device == "cuda")):
+            result = pipe(
+                prompt="same background, no watermark, realistic completion",
+                image=img_512,
+                mask_image=mask_512,
+                guidance_scale=7.5,
+                num_inference_steps=20  # step 줄이는 것도 병행 추천
+            ).images[0]
 
         # 인페인팅 결과를 한번만 리사이즈하고, 두 번 저장
         final_result = result.resize(orig.size, Image.LANCZOS)
