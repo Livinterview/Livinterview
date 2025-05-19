@@ -1,7 +1,17 @@
 type PriceDisplayProps = {
-  priceType: string
-  deposit: number
+  dongName?: string
+  roomType?: String
+  roomTitle?: string
+  roomDesc?: string
+  priceType?: string
+  imgUrlList?: string
+  lat?: number
+  lng?: number
+  floor?: string
+  areaM2?: number
+  deposit?: number
   monthly?: number
+  maintenanceFee?: number
 }
 
 function formatDeposit(deposit: number, priceType: string) {
@@ -17,13 +27,36 @@ function formatDeposit(deposit: number, priceType: string) {
   return `${man}만원`;
 }
 
-export default function PriceDisplay({ priceType, deposit, monthly }: PriceDisplayProps) {
+export default function PriceDisplay({ 
+  priceType, 
+  deposit, 
+  monthly, 
+  roomType, 
+  roomDesc, 
+  roomTitle, 
+  imgUrlList, 
+  floor, 
+  areaM2, 
+  maintenanceFee,
+ }: PriceDisplayProps) {
   return (
     <>
-      {priceType} {formatDeposit(deposit, priceType)}
-      {priceType !== '전세' && monthly && monthly > 0 && (
-        <> / {Math.floor(monthly / 10000)}만원</>
+      {priceType && deposit !== undefined && (
+        <>
+          {priceType} {formatDeposit(deposit, priceType)}
+          {priceType !== '전세' && monthly && monthly > 0 && (
+            <> / {Math.floor(monthly / 10000)}만원</>
+          )}
+        </>
       )}
+      {roomType}
+      {roomDesc}
+      {roomTitle}
+      {imgUrlList}
+      {floor}
+      {areaM2}
+      {/* 관리비 */}
+      {maintenanceFee}
     </>
   );
 }
