@@ -1,5 +1,5 @@
 # 기본적으로 남겨야 할 키워드 정의
-MUST_KEEP_KEYWORDS = ["room", "floor", "wall", "door", "window", "apartment"]
+MUST_KEEP_KEYWORDS = ["room", "floor", "wall", "door", "window", "apartment", "ceiling"]
 
 
 def normalize(label: str) -> str:
