@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ChatMessageList from "../components/ChatMessageList";
 import RoomieHeader from "../components/RoomieHeader"; 
+import ImageModal from "../components/ImageModal";
 
 interface ChatState {
   imageUrl: string;
@@ -36,6 +37,12 @@ export default function RoomieClean() {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const handleImageClick = (src: string) => {
+    setModalImageUrl(src);
+    setModalOpen(true);
+  };
 
   // 채팅 메시지 상태
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -151,72 +158,84 @@ export default function RoomieClean() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* 상단  */}
-    <RoomieHeader />
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      <ChatMessageList messages={messages} />
+      <RoomieHeader />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
 
-      {step === "askClean" && (
-        <div className="space-y-4 text-center">
-          {loading ? (
-            <p className="text-center text-gray-500 text-sm animate-pulse">
-              🕵️ 가구를 감지 중입니다... 잠시만 기다려주세요!
-            </p>
-          ) : (
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => handleAskClean(true)}
-                disabled={loading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl"
-              >
-                청소할래
-              </button>
-              <button
-                onClick={() => handleAskClean(false)}
-                disabled={loading}
-                className="px-6 py-3 bg-gray-300 rounded-xl"
-              >
-                이미 깨끗해
-              </button>
+        {step === "askClean" && (
+          <div className="space-y-4 text-center">
+            {loading ? (
+              <p className="text-center text-gray-500 text-sm animate-pulse">
+                🕵️ 가구를 감지 중입니다... 잠시만 기다려주세요!
+              </p>
+            ) : (
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => handleAskClean(true)}
+                  disabled={loading}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-xl"
+                >
+                  청소할래
+                </button>
+                <button
+                  onClick={() => handleAskClean(false)}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gray-300 rounded-xl"
+                >
+                  이미 깨끗해
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === "labeling" && (
+          <div>
+            <p className="font-semibold">남길 가구를 선택해주세요:</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {labels.map((labelObj, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => toggleLabel(idx)}
+                  className={`px-4 py-2 rounded-xl border ${
+                    selectedIndices.includes(idx)
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  {labelObj.ko}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-      )}
 
-      {step === "labeling" && (
-        <div>
-          <p className="font-semibold">남길 가구를 선택해주세요:</p>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {labels.map((labelObj, idx) => (
+            {loading ? (
+              <p className="mt-4 text-center text-gray-500 animate-pulse">
+                청소 중입니다… 🧹
+              </p>
+            ) : (
               <button
-                key={idx}
-                onClick={() => toggleLabel(idx)}
-                className={`px-4 py-2 rounded-xl border ${
-                  selectedIndices.includes(idx)
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
+                onClick={handleStartCleaning}
+                disabled={loading}
+                className="mt-4 w-full py-3 bg-blue-600 text-white rounded-xl"
               >
-                {labelObj.ko}
+                청소 시작
               </button>
-            ))}
+            )}
           </div>
 
-          {loading ? (
-            <p className="mt-4 text-center text-gray-500 animate-pulse">
-              청소 중입니다… 🧹
-            </p>
-          ) : (
-            <button
-              onClick={handleStartCleaning}
-              disabled={loading}
-              className="mt-4 w-full py-3 bg-blue-600 text-white rounded-xl"
-            >
-              청소 시작
-            </button>
-          )}
-        </div>
+          
+        )}
+      </div>
+      {/* 추가: 이미지 모달 렌더링 */}
+      {modalOpen && modalImageUrl && (
+        <ImageModal
+          imageUrl={modalImageUrl ?? ""}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
       )}
     </div>
-  </div>
+
+  
   );
 }

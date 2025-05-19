@@ -124,7 +124,7 @@ export default function RoomDetail({
                     e.stopPropagation();
                     handleCloseImageModal();
                   }}
-                  className="absolute top-4 right-4 text-white text-2xl font-bold z-[100]"
+                  className="absolute top-4 right-4 text-white font-bold z-[100]"
                 >
                   X
                 </button>

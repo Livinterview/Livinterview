@@ -1,12 +1,19 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import RoomieHeader from "../components/RoomieHeader";
-
+import ImageModal from "../components/ImageModal";
 
 export default function RoomieResult() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const backendBaseUrl = "http://localhost:8000";
+  const [modalOpen, setModalOpen] = useState(false);
+    const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+    const handleImageClick = (src: string) => {
+      setModalImageUrl(src);
+      setModalOpen(true);
+    };
 
   const {
     originalImage = localStorage.getItem("originalImage"),
@@ -51,6 +58,7 @@ export default function RoomieResult() {
             src={resolvedOriginal || defaultOriginal}
             alt="기존 방"
             className="w-full rounded-lg shadow object-cover"
+            onClick={() => handleImageClick(resolvedOriginal || defaultOriginal)}
           />
         </div>
 
@@ -61,6 +69,7 @@ export default function RoomieResult() {
             src={resolvedGenerated || defaultGenerated}
             alt="생성된 인테리어"
             className="w-full rounded-lg shadow object-cover"
+            onClick={() => handleImageClick(resolvedGenerated || defaultGenerated)}
           />
         </div>
 
@@ -79,6 +88,15 @@ export default function RoomieResult() {
           </button>
         </div>
       </div>
+      {/* 추가: 이미지 모달 렌더링 */}
+      {modalOpen && modalImageUrl && (
+        <ImageModal
+          imageUrl={modalImageUrl ?? ""}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+
     </div>
   )
 }
