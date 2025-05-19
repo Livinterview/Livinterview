@@ -3,11 +3,69 @@ import React from "react";
 // ✅ props 타입 정의
 interface ReportViewResultProps {
   userName: string;
-  topIndicators: string[];
+  topIndicators: { main_category: string; sub_category: string }[];
   introText: string[];
   scores: Record<string, number>;
-  eightIndicatorDescriptions: Record<string, string>;  // ✅ 수정됨
+  eightIndicatorDescriptions: Record<string, string>; 
 }
+
+// ✅ 1. main_category → 폴더명
+const mainCategoryToFolder: Record<string, string> = {
+  생활: "life",
+  교통: "transfer",
+  편의: "convenience",
+  건강: "health",
+  안전: "safety",
+  녹지: "green",
+  놀이: "play",
+  운동: "workout",
+};
+
+// ✅ 2. sub_category → 파일명
+const subCategoryToFile: Record<string, string> = {
+  //생활
+  카페: "cafe",
+  도서관: "library",
+  주민센터: "center",
+  반찬가게: "sidedish",
+  은행: "bank",
+  //건강
+  병원: "hospital",
+  한의원: "hospital",
+  약국: "pharmacy",
+  //교통
+  따릉이: "bicycle",
+  지하철: "subway",
+  버스: "bus",
+  // 편의
+  편의점: "convenience-store",
+  다이소: "daiso",
+  빨래방: "washing-machine",
+  마트: "bigmarket",
+  //놀이
+  노래방: "karaoke",
+  PC방: "pcroom",
+  영화관: "movietheater",
+  문화생활공간: "cultural-life",
+  //안전
+  경찰: "police",
+  소방서: "firefight",
+  //녹지
+  공원: "park",
+  산: "mountain",
+  강: "river",
+  하천: "stream",
+};
+
+  
+// ✅ 3. 이미지 경로 생성 함수
+const getImagePath = (main: string, sub: string): string => {
+  const folder = mainCategoryToFolder[main] || "default_folder";
+  const file = subCategoryToFile[sub] || "default";
+  return `/icons/report/${folder}/${file}.svg`;
+};
+
+
 
 export default function ReportViewResult({
   userName,
@@ -16,16 +74,7 @@ export default function ReportViewResult({
   scores,
   eightIndicatorDescriptions, 
 }: ReportViewResultProps) {
-  const indicatorImageMap: Record<string, string> = {
-    생활: "life",
-    안전: "safety",
-    교통: "transfer",
-    편의: "convenience",
-    건강: "health",
-    녹지: "green",
-    놀이: "play",
-    운동: "workout",
-  };
+
 
   return (
     <div className="flex flex-col items-start w-[794px] mt-12">
@@ -74,7 +123,9 @@ export default function ReportViewResult({
           <span style={{ fontWeight: "bold", color: "black" }}>{userName}</span>
           <span>님은 거주지를 선택하실 때,</span>
           {topIndicators.map((indicator, idx) => (
-            <span key={idx} style={{ fontWeight: "bold", color: "black" }}>{indicator}</span>
+            <span key={idx} style={{ fontWeight: "bold", color: "black" }}>
+              {indicator.main_category}
+            </span>
           ))}
           <span>부분을 중요하게 생각하시네요.</span>
         </div>
@@ -82,39 +133,39 @@ export default function ReportViewResult({
         {/* 🖼️ 중요 지표 아이콘 */}
         <div style={{ position: "relative", width: "794px", height: "700px" }}>
           {topIndicators.map((indicator, idx) => {
-            const folderName = indicatorImageMap[indicator];
-            const imagePath = `/icons/report/${folderName}/0.png`;
+  const imagePath = getImagePath(indicator.main_category, indicator.sub_category); // ✅ 새 함수 사용
 
-            return (
-              <div key={idx}>
-                <img
-                  src={imagePath}
-                  alt={`${indicator} 이미지`}
-                  crossOrigin="anonymous"
-                  style={{
-                    position: "absolute",
-                    top: "312px",
-                    left: `${65 + idx * 240}px`,
-                    width: "180px",
-                    height: "180px",
-                    objectFit: "contain",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "509px",
-                    left: `${100 + idx * 240}px`,
-                    fontSize: "23px",
-                    fontWeight: "bold",
-                    color: "white",
-                  }}
-                >
-                  {indicator} 지표
-                </div>
-              </div>
-            );
-          })}
+  return (
+    <div key={idx}>
+      <img
+        src={imagePath}
+        alt={`${indicator.sub_category} 아이콘`}
+        crossOrigin="anonymous"
+        style={{
+          position: "absolute",
+          top: "320px",
+          left: `${65 + idx * 240}px`,
+          width: "155px",
+          height: "155px",
+          objectFit: "contain",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "509px",
+          left: `${100 + idx * 240}px`,
+          fontSize: "23px",
+          fontWeight: "bold",
+          color: "white",
+        }}
+      >
+        {indicator.main_category} 지표
+      </div>
+    </div>
+  );
+})}
+
         </div>
 
         {/* 📌 설명 텍스트 */}

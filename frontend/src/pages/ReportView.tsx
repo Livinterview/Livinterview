@@ -7,6 +7,7 @@ interface RecommendedItem {
   name: string;
   location: string;
   description: string[];
+  strong_indicators: { main_category: string; sub_category: string }[]; 
 }
 
 
@@ -24,7 +25,7 @@ export default function ReportView() {
   // 🔐 사용자 정보 세션에서 가져오기
   const storedUser = sessionStorage.getItem("user");
   const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-  const userName = parsedUser?.name || "이름 없음";
+  const userName = parsedUser?.name || "박병준";
   
 
   // 📋 전체 리포트 데이터 추출
@@ -34,7 +35,7 @@ export default function ReportView() {
   const scores = data?.["8_indicators"] ?? {};
   const topIndicators = data?.top_indicators ?? [];
   const introText = data?.intro_text ?? [];
-  const eightIndicatorDescriptions = data?.["8_indicator_discriptions"] ?? {};
+  const eightIndicatorDescriptions = data?.["8_indicator_descriptions"] ?? {};
 
   const recommended = data?.recommended ?? [];
 
@@ -110,7 +111,7 @@ export default function ReportView() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 py-12 px-4">
+    <div id="report-view-wrapper" className="min-h-screen flex flex-col items-center bg-gray-100 py-12 px-4">
       {/* 상단 정렬 라인 – w-[794px] 기준 */}
       <div className="w-[794px] mx-auto relative mb-6">
 
@@ -129,7 +130,7 @@ export default function ReportView() {
         {/* 오른쪽 PDF 버튼 – 살짝 아래로 내림 */}
         <button
           onClick={handleDownloadPDF}
-          className="absolute right-0 top-[80px] px-4 py-2 bg-[#2E3D86] text-white text-sm font-medium rounded-lg shadow hover:bg-[#1f2b63] transition print:hidden"
+          className="absolute right-8 top-[80px] px-4 py-2 bg-[#2E3D86] text-white text-sm font-medium rounded-lg shadow hover:bg-[#1f2b63] transition print:hidden"
         >
           📄 PDF 다운로드
         </button>
@@ -157,6 +158,7 @@ export default function ReportView() {
             topIndicators={topIndicators}
             mapReady={mapReady}
             description={item.description}
+            strongIndicators={item.strong_indicators} 
           />
         ))}
 
