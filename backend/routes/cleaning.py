@@ -14,16 +14,31 @@ from empty_room_gen.masking.run import create_removal_mask
 from chatbot_core.memory.session_memory import get_memory
 import traceback
 import shutil
-from deep_translator import GoogleTranslator
+# from deep_translator import GoogleTranslator
+from openai import OpenAI
 
 router = APIRouter()
 
 # ──────────────────────────────
 # 감지된 가구들 화면에서 영어를 한국어로 번역하기
 # ──────────────────────────────
-def translate_to_korean(labels: List[str]) -> List[str]:
-    translator = GoogleTranslator(source='en', target='ko')
-    return [translator.translate(label) for label in labels]
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def llm_translate(labels: List[str]) -> List[str]:
+    prompt = f"""
+아래 영어 가구 이름을 한국어로 자연스럽게 번역해줘. 직역 말고, 일반인이 알아듣기 쉬운 표현으로 번역해줘.
+
+{', '.join(labels)}
+
+출력은 쉼표로 구분해서 같은 순서로 돌려줘.
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    output = response.choices[0].message.content
+    return [x.strip() for x in output.split(",")]
+
 
 # ──────────────────────────────
 # 경로·프롬프트 상수
@@ -89,13 +104,13 @@ async def detect_labels(image_id: str = Form(...)):
     if not labels:
         return {"status": "fail", "message": "감지된 객체가 없습니다."}
     
-    translated = translate_to_korean(sorted(set(labels)))
-
+    translated = llm_translate(list(dict.fromkeys(labels)))
     return {
         "status": "success", 
         "labels": [
-            {"en": en, "ko": ko} for en, ko in zip(sorted(set(labels)), translated)
-        ]}
+            {"en": en, "ko": ko} for en, ko in zip(list(dict.fromkeys(labels)), translated)
+        ]
+    }
 
 # ──────────────────────────────
 # 3) 선택 기반 마스크 생성
@@ -133,9 +148,14 @@ async def create_removal(
 @router.post("/inpaint")
 async def run_inpaint(image_id: str = Form(...)):
     try:
-        input_path = f"./data/uploads/{image_id}.jpg"
+        # 입력은 _wm.jpg 사용
+        input_path = f"./data/uploads/{image_id}_wm.jpg"
+
+        # 출력은 results에만 저장 (덮어쓰기 X)
         output_path = f"./data/results/{image_id}/sd_inpainted_room.png"
-        final_path = f"./data/uploads/{image_id}.jpg"
+
+        # 구조 분석용 저장도 safe한 경로 사용
+        blank_copy_path = f"./data/uploads/blank/{image_id}.jpg"
 
         if os.path.exists(output_path):
             return {"status": "success", "inpainted_url": f"/static/results/{image_id}/sd_inpainted_room.png"}
@@ -175,10 +195,11 @@ async def run_inpaint(image_id: str = Form(...)):
         ).images[0]
 
         result.resize(orig.size, Image.LANCZOS).save(output_path)
-        # 구조 분석을 위해 uploads 경로에도 저장
-        final_path = f"./data/uploads/blank/{image_id}.jpg"
-        os.makedirs(os.path.dirname(final_path), exist_ok=True)
-        shutil.copy(output_path, final_path)
+
+        # 원본 오염 없이 구조 분석용만 따로 저장
+        os.makedirs(os.path.dirname(blank_copy_path), exist_ok=True)
+        shutil.copy(output_path, blank_copy_path)
+                    
         return {"status": "success", "inpainted_url": f"/static/results/{image_id}/sd_inpainted_room.png"}
 
     except Exception:

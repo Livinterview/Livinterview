@@ -105,24 +105,26 @@ async def run_initial_prompt(session_id: str, image_id: str, is_clean: bool = Fa
     callback = AsyncIteratorCallbackHandler()
     llm = get_chat_model(use_vision=True, callbacks=[callback])
 
-    # 무조건 구조 분석 수행
-    logger.info("[run_initial_prompt] 구조 분석 시작")
     local_path = (
         f"./data/uploads/blank/{image_id}.jpg" if is_clean
         else f"./data/uploads/{image_id}.jpg"
     )
-    
-    # 상세 구조
-    detailed_msg = await detailed_structure_chain.ainvoke({"image_path": local_path})
-    structure_context = detailed_msg.content.strip()
-    memory.chat_memory.add_ai_message(f"[상세구조][{image_id}] {structure_context}")
-    logger.info(f"[run_initial_prompt] 상세 구조 저장됨:\n{structure_context}")
 
-    # 간략 구조
-    brief_msg = await brief_structure_chain.ainvoke({"image_path": local_path})
-    brief_context = brief_msg.content.strip()
-    memory.chat_memory.add_ai_message(f"[간략구조] {brief_context}")
-    logger.info(f"[run_initial_prompt] 간략 구조 저장됨:\n{brief_context}")
+    existing = [
+        m.content for m in memory.chat_memory.messages
+        if m.content.startswith(f"[상세구조][{image_id}]")
+    ]
+
+    if existing:
+        # 이미 상세 구조 있으면 그걸 씀
+        structure_context = existing[-1].replace(f"[상세구조][{image_id}]", "").strip()
+        logger.info(f"[run_initial_prompt] 기존 상세 구조 재사용:\n{structure_context}")
+    else:
+        # 여기서만 상세 구조 분석
+        detailed_msg = await detailed_structure_chain.ainvoke({"image_path": local_path})
+        structure_context = detailed_msg.content.strip()
+        memory.chat_memory.add_ai_message(f"[상세구조][{image_id}] {structure_context}")
+        logger.info(f"[run_initial_prompt] 상세 구조 저장됨:\n{structure_context}")
     
 
     # 시스템 메시지 생성

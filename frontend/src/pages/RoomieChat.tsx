@@ -26,6 +26,7 @@ export default function RoomieChat() {
     sessionId,
     originalImageId,
     isClean,
+    beforeUrl,
   } = state as {
     imageUrl: string;
     title?: string;
@@ -34,6 +35,7 @@ export default function RoomieChat() {
     sessionId: string;
     originalImageId?: string;
     isClean: boolean;
+    beforeUrl?: string;
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -70,7 +72,7 @@ export default function RoomieChat() {
 
     const rawSrc = isClean
       ? blankRoomUrl!
-      : `http://localhost:8000/data/uploads/${originalImageId}.jpg`;
+      : (beforeUrl ?? imageUrl);
     const resolvedSrc = rawSrc.startsWith("http")
       ? rawSrc
       : `http://localhost:8000${rawSrc}`;
@@ -78,7 +80,7 @@ export default function RoomieChat() {
     const preloadImg = new Image();
     preloadImg.src = resolvedSrc;
     preloadImg.onload = () => {
-      console.log("✅ 이미지 preload 완료", resolvedSrc);
+      console.log("이미지 preload 완료", resolvedSrc);
 
       // 첫 번째 메시지 추가 (방 이미지와 "좋아! 이제 방을 같이 꾸며보자 😊")
       setMessages([
@@ -310,15 +312,17 @@ export default function RoomieChat() {
       const { image_url } = await fetch("http://localhost:8000/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, session_id: sessionId, image_id: passedImageId,}),
+        body: JSON.stringify({ prompt, session_id: sessionId, image_id: passedImageId, is_clean: isClean,}),
       }).then((r) => r.json());
 
+      const original = beforeUrl ?? imageUrl;
+
       localStorage.setItem("generatedImage", image_url);
-      localStorage.setItem("originalImage", imageUrl);
+      localStorage.setItem("originalImage", original);
 
       navigate("/roomie/result", {
         state: {
-          originalImage: imageUrl,
+          originalImage: original,
           generatedImage: image_url,
           title,
         },

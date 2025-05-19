@@ -17,4 +17,8 @@ async def download_image(req: DownloadRequest):
     async with aiohttp.ClientSession() as sess, sess.get(req.image_url) as r:
         async with aiofiles.open(path, "wb") as f:
             await f.write(await r.read())
+    # 다운로드한 이미지의 원본 URL과 저장 경로 출력
+    print("[DOWNLOAD] image_url:", req.image_url)
+    print("[DOWNLOAD] saved as:", path)
+    
     return {"image_id": image_id}

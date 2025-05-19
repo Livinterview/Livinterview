@@ -94,6 +94,11 @@ def _get_or_build_predictor(sam_ckpt: str, device: str):
         _ModelCache.add(key, pred)
     return pred
 
+def fix_label(label: str) -> str:
+    if "view" in label.lower():
+        return "window"
+    return label
+
 # -------------------- 메인 함수 --------------------
 def extract_detected_labels(
     image_path: str,
@@ -136,7 +141,7 @@ def extract_detected_labels(
     tag_list = [t.strip() for t in tags.split("|")]
     filtered_tags = [t for t in tag_list if not is_must_keep(t)]
 
-    prompt = f"{', '.join(filtered_tags)}, blanket, pillow, comforter, bedding, mattress cover"
+    prompt = f"{', '.join(filtered_tags)}, blanket, pillow, comforter, bedding, mattress cover, Television, bed, sofa, clothes, refrigerator"
     print("[GROUNDING PROMPT]:", prompt)
 
     # ---------- 2) Grounding DINO ----------
@@ -185,7 +190,7 @@ def extract_detected_labels(
     final_boxes = [boxes_d[i] for i in filt_idx]
     final_masks = [masks_d[i] for i in filt_idx]
     final_scores = [scores_d[i] for i in filt_idx]
-    final_labels = [labels_d[i] for i in filt_idx]
+    final_labels = [fix_label(labels_d[i]) for i in filt_idx]
 
     # ---------- 5) 로그 ----------
     print("[✅ 감지된 라벨]:", final_labels)

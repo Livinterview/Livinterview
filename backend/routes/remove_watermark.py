@@ -78,21 +78,13 @@ async def remove_watermark(req: WatermarkRequest):
         orig = Image.open(img_path).convert("RGB")
         mask = get_watermark_mask(img_path)
 
-        # 디버깅 저장
         debug_mask_path = os.path.join(DEBUG_DIR, f"{req.image_id}_mask.png")
         debug_orig_path = os.path.join(DEBUG_DIR, f"{req.image_id}_orig.jpg")
         orig.save(debug_orig_path)
         mask.save(debug_mask_path)
-        print(f"[INFO] 마스크 저장 완료: {debug_mask_path}")
 
         img_512  = orig.resize((512, 512), Image.LANCZOS)
         mask_512 = mask.resize((512, 512), Image.LANCZOS)
-
-        # 디바이스 & 메모리 디버깅 로그
-        print("[DEBUG] torch.cuda.is_available:", torch.cuda.is_available())
-        print("[DEBUG] pipe.unet.device:", next(pipe.unet.parameters()).device)
-        print("[DEBUG] VRAM allocated:", torch.cuda.memory_allocated() / 1e6, "MB")
-        print("[DEBUG] VRAM reserved:", torch.cuda.memory_reserved() / 1e6, "MB")
 
         with autocast(enabled=(device == "cuda")):
             result = pipe(
@@ -100,23 +92,24 @@ async def remove_watermark(req: WatermarkRequest):
                 image=img_512,
                 mask_image=mask_512,
                 guidance_scale=7.5,
-                num_inference_steps=20  # step 줄이는 것도 병행 추천
+                num_inference_steps=20
             ).images[0]
 
-        # 인페인팅 결과를 한번만 리사이즈하고, 두 번 저장
+        # 원래 크기로 복원
         final_result = result.resize(orig.size, Image.LANCZOS)
 
-        # 기존 uploads 덮어쓰기 대신 results 디렉토리 저장
-        output_path = os.path.join("./data/results", f"{req.image_id}_final.jpg")
-        final_result.save(output_path)
+        # 워터마크 제거 결과만 저장
+        wm_path = os.path.join(UPLOAD_DIR, f"{req.image_id}_wm.jpg")
+        final_result.save(wm_path)
 
-        # ⬇ uploads 폴더에 동일 이름으로 덮어쓰기
-        upload_path = os.path.join("./data/uploads", f"{req.image_id}.jpg")
-        shutil.copy(output_path, upload_path)
+        # 메모리 정리
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
-        return {
-            "cleaned_url": urljoin(API_BASE, output_path.replace("./data", "/data").replace("\\", "/"))
-        }
+        # 반환: 항상 워터마크 제거본 URL
+        return {"wm_url": wm_path.replace("./data", "/data").replace("\\", "/")}
 
     except HTTPException:
         raise

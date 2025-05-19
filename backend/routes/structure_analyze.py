@@ -63,7 +63,6 @@ async def analyze_structure(req: StructureRequest):
 
     # 4) 메모리 업데이트
     memory.chat_memory.add_user_message("[system] 방 구조 설명")
-    memory.chat_memory.add_ai_message(f"[간략구조] {brief}")
     memory.chat_memory.add_ai_message(f"[상세구조][{basename}] {detailed}")
     memory.chat_memory.add_ai_message(image_path)
 
@@ -92,8 +91,15 @@ async def analyze_brief(req: StructureRequest):
     msg = await brief_structure_chain.ainvoke({"image_path": image_path})
     content = msg.content if hasattr(msg, "content") else str(msg)
 
+    # 세션 기반 저장
     memory.chat_memory.add_user_message("[system] 간략 구조 설명")
     memory.chat_memory.add_ai_message(f"[간략구조] {content}")
     memory.chat_memory.add_ai_message(image_path)
+
+    # image_id 기반 저장 (for inpaint)
+    mem_by_image_id = get_memory(req.image_id)
+    mem_by_image_id.chat_memory.add_user_message("[system] 간략 구조 설명")
+    mem_by_image_id.chat_memory.add_ai_message(f"[간략구조] {content}")
+    mem_by_image_id.chat_memory.add_ai_message(image_path)
 
     return {"brief": content}
