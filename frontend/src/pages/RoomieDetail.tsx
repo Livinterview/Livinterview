@@ -2,13 +2,15 @@ import { Room } from "../types/room";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import MapPriceDisplay from "../components/MapPriceDisplay";
+import type { Swiper as SwiperClass } from 'swiper/types';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
 
 export default function RoomDetail({
   room,
@@ -21,9 +23,12 @@ export default function RoomDetail({
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const mainSwiperRef = useRef<SwiperClass | null>(null);
   const handleCloseImageModal = () => {
     setSelectedImage(null);
+    if (mainSwiperRef.current) {
+      mainSwiperRef.current.slideTo(currentIndex, 0);
+    }
   };
 
   const imgUrls: string[] = typeof room.img_url_list === "string"
@@ -64,8 +69,10 @@ export default function RoomDetail({
                 slidesPerView={1}
                 navigation
                 modules={[Navigation]}
-                onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+                onSlideChange={(swiper:SwiperClass) => setCurrentIndex(swiper.activeIndex)}
+                onSwiper={(swiper: SwiperClass) => (mainSwiperRef.current = swiper)}
                 className="w-full h-64"
+                initialSlide={currentIndex}
               >
                 {imgUrls.map((url, index) => (
                   <SwiperSlide key={index}>
@@ -96,9 +103,10 @@ export default function RoomDetail({
                 <Swiper
                   spaceBetween={10}
                   slidesPerView={1}
-                  initialSlide={imgUrls.indexOf(selectedImage)}
+                  initialSlide={currentIndex}
                   navigation
                   modules={[Navigation]}
+                  onSlideChange={(swiper:SwiperClass) => setCurrentIndex(swiper.activeIndex)}
                   className="w-full h-full"
                 >
                   {imgUrls.map((url, index) => (
