@@ -12,14 +12,15 @@ export function useKakaoMap(
   mapRef: React.RefObject<HTMLDivElement>,
   rooms: Room[],
   onPinClick: (room: Room) => void,
-  navigate: any
+  navigate: any,
+  onClusterClick?: (rooms: Room[]) => void
 ) {
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 지도는 최초 1회만 생성
+  // 지도 초기화
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const loadMap = () => {
@@ -34,6 +35,7 @@ export function useKakaoMap(
           averageCenter: true,
           minLevel: 2,
           gridSize: 60,
+          disableClickZoom: true,
           styles: [
             {
               width: "40px",
@@ -49,6 +51,19 @@ export function useKakaoMap(
           ],
         });
         clustererRef.current = clusterer;
+
+        // ✅ 클러스터 클릭 이벤트에서 marker.room 직접 사용
+        if (onClusterClick) {
+          window.kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: any) => {
+            const markersInCluster = cluster.getMarkers();
+
+            const clusteredRooms = markersInCluster
+              .map((marker: any) => marker.room)
+              .filter((room: Room | undefined): room is Room => room !== undefined);
+
+            onClusterClick(clusteredRooms);
+          });
+        }
 
         // 지도 중심 이동 시 URL 업데이트
         window.kakao.maps.event.addListener(map, "idle", () => {
@@ -77,29 +92,33 @@ export function useKakaoMap(
         };
       }
     }
-  }, []); // 지도 초기화는 최초 1번만
+  }, []);
 
-  // rooms 바뀔 때마다 마커 업데이트
+  // rooms 변경 시 마커 갱신
   useEffect(() => {
     const map = mapInstanceRef.current;
     const clusterer = clustererRef.current;
-
     if (!map || !clusterer) return;
 
     setLoading(true);
 
     const markerImage = createCustomMarkerImage(window.kakao);
 
+    // 기존 마커 제거
     markersRef.current.forEach((marker) => marker.setMap(null));
     clusterer.clear();
     markersRef.current = [];
 
     const currentLevel = map.getLevel();
+
     const markers = rooms.map((room) => {
       const marker = new window.kakao.maps.Marker({
         position: new window.kakao.maps.LatLng(room.lat, room.lng),
         image: markerImage,
       });
+
+      // ✅ 마커에 room 객체 직접 할당
+      marker.room = room;
 
       window.kakao.maps.event.addListener(marker, "click", () => {
         onPinClick(room);
