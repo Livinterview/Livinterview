@@ -161,7 +161,7 @@ export default function RoomDetail({
                   const { image_id } = await downloadRes.json();
 
               // 2) 워터마크 제거 요청 (실패해도 다음 단계로 진행)
-              let cleaned_url = imgUrls[currentIndex]; 
+              let wm_url = imgUrls[currentIndex];  
               try {
                 const wmRes = await fetch("http://localhost:8000/image-tools/remove-watermark", {
                   method: "POST",
@@ -174,7 +174,7 @@ export default function RoomDetail({
                 } else {
                   const wmData = await wmRes.json();
                   console.log("워터마크 제거 성공:", wmData);
-                  cleaned_url = wmData.cleaned_url;
+                  wm_url = wmData.wm_url;
                 }
               } catch (err) {
                 console.warn("워터마크 제거 중 예외 발생:", err);
@@ -194,14 +194,18 @@ export default function RoomDetail({
               );
               const structureData = await structureRes.json();
 
-
+              const backendBaseUrl = "http://localhost:8000";
               const timestamp = Date.now();
-              const cleanedUrlWithVersion = cleaned_url + `?v=${timestamp}`;
+              const beforeUrl =
+                wm_url.startsWith("/")           //  "/data/..." 형태면
+                  ? `${backendBaseUrl}${wm_url}?v=${timestamp}`  // → "http://localhost:8000/data/..."
+                  : `${wm_url}?v=${timestamp}`;  // 이미 http로 시작하면 그대로
+
 
               // 4) RoomieClean 화면으로 이동
               navigate("/roomie/clean", {
                 state: {
-                  imageUrl: cleanedUrlWithVersion,
+                  imageUrl: beforeUrl,
                   title: room.room_title || "방 정보",
                   sessionId,
                   imageId: image_id,

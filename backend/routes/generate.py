@@ -17,6 +17,7 @@ class GenerateRequest(BaseModel):
     session_id: str
     image_id: str
     prompt: str | None = None 
+    is_clean: bool
 
 @router.post("/generate-image")
 async def generate_image(req: GenerateRequest):
@@ -45,8 +46,11 @@ async def generate_image(req: GenerateRequest):
 
         {base_prompt}
 
+        Keep the additions minimal and spaced out.
+        Leave open areas untouched to preserve the room's spaciousness.
+
         Make sure the lighting and shadows match the current scene.
-        Do not add or remove anything else.
+        Do not make any further changes beyond the specified additions.
         """.strip()
 
         # 프롬프트 로그 출력
@@ -55,8 +59,15 @@ async def generate_image(req: GenerateRequest):
         print("[End of Prompt]")
 
         # 3) Decor8 기반 이미지 생성
-        # 로컬 이미지 경로
-        image_path = Path(f"./data/uploads/{req.image_id}.jpg")
+        # 청소 여부에 따라 배경 선택
+        if req.is_clean:                                                # 청소본 사용
+            image_path = Path(f"./data/results/{req.image_id}/sd_inpainted_room.png")
+        else:                                                           # 워터마크 제거본 사용
+            wm = Path(f"./data/uploads/{req.image_id}_wm.jpg")
+            image_path = wm if wm.exists() else Path(f"./data/uploads/{req.image_id}.jpg")
+
+        if not image_path.exists():
+            raise HTTPException(404, "배경 이미지가 없습니다.")
 
         # GitHub에 업로드하고 raw 이미지 URL 받기
         raw_image_url = upload_image_to_github(image_path)

@@ -28,10 +28,16 @@ def build_vision_chain(prompt_text: str):
 
 # ── 간략 구조 설명 체인 (Vision 기반) ──
 brief_structure_chain = build_vision_chain(
-    "Briefly describe the wall color, floor material, and overall tone in one English sentence."
+    "Describe the wall color and texture, and the floor material and color in one detailed English sentence."
 )
 
 # ── 상세 구조 설명 체인 (Vision 기반) ──
 detailed_structure_chain = build_vision_chain(
-    "Describe the room's structure in as much detail as possible, including:\n- Wallpaper pattern and color\n- Floor material and finish\n- Window locations and sizes\n- Door locations and count\n- Ceiling height and lighting fixtures\n- Any other notable architectural or decorative features"
+    "Describe the room's structure in as much detail as possible, including:\n"
+    "- Wallpaper pattern and color\n"
+    "- Floor material and finish\n"
+    "- Window locations and sizes\n"
+    "- Door locations and count\n"
+    "- Ceiling height and lighting fixtures\n"
+    "- Any other notable architectural or decorative features (e.g., built-in cabinet, moldings, pillars)"
 )

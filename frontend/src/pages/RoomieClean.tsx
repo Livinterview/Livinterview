@@ -10,6 +10,7 @@ interface ChatState {
   sessionId: string;
   imageId: string;
   originalImageId?: string;
+  beforeUrl: string;
 }
 
 interface ChatMessage {
@@ -28,6 +29,7 @@ export default function RoomieClean() {
     sessionId,
     imageId: passedImageId,
     originalImageId,
+    beforeUrl,
   } = state as ChatState;
 
   type Label = { en: string; ko: string };
@@ -37,6 +39,11 @@ export default function RoomieClean() {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const backendBaseUrl = "http://localhost:8000";
+  const resolvedImageUrl = imageUrl.startsWith("/")
+    ? backendBaseUrl + imageUrl
+    : imageUrl;
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const handleImageClick = (src: string) => {
@@ -52,7 +59,7 @@ export default function RoomieClean() {
     if (!passedImageId || step !== "askClean") return;
     setMessages([
       { type: "text", text: "안녕! 난 인테리어 도우미 Roomie야 😊", sender: "bot" },
-      { type: "image", src: imageUrl, sender: "bot" },
+      { type: "image", src: resolvedImageUrl, sender: "bot" },
       { type: "text", text: "혹시 방에 치워야 할 가구들이 있다면 청소해줄 수 있어! 어떻게 할래?", sender: "bot" },
     ]);
   }, [passedImageId, step]);
@@ -64,8 +71,8 @@ export default function RoomieClean() {
     if (!clean) {
       navigate("/roomie/chat", {
         state: {
+          beforeUrl, 
           imageUrl,
-          blankRoomUrl: imageUrl,
           imageId: passedImageId,
           originalImageId,
           title,
@@ -134,8 +141,9 @@ export default function RoomieClean() {
       // navigate
       navigate("/roomie/chat", {
         state: {
-          imageUrl: inpainted_url,
-          blankRoomUrl: inpainted_url,
+          beforeUrl,
+          imageUrl,                             // 워터마크 제거된 이미지
+          blankRoomUrl: inpainted_url,         // 청소된 이미지 (구조 분석 용)
           imageId: passedImageId,
           originalImageId,
           title,

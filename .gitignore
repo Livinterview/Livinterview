@@ -29,7 +29,6 @@ __pycache__/
 
 # Virtual environments (추가 경로)
 ENV/
-backend/empty-room-gen/inpaint/lama-venv/
 
 # Logs
 *.log
@@ -38,19 +37,23 @@ backend/empty-room-gen/inpaint/lama-venv/
 *.pth
 *.pt
 **/*.ckpt
-backend/empty-room-gen/masking/checkpoints/
+backend/empty_room_gen/masking/checkpoints/
 
 # Masking output
-backend/empty-room-gen/masking/outputs/
+backend/empty_room_gen/masking/outputs/
 
 # Sample/demo images
-backend/empty-room-gen/masking/Tag2Text/images/
+backend/empty_room_gen/masking/Tag2Text/images/
 **/demo_outputs/
 **/test_images/
 **/inference_outputs/
 *.png
 *.jpg
-backend/empty-room-gen/interior/assets/
+backend/empty_room_gen/interior/assets/
+
+# Third-party modules cloned from external repositories 
+backend/interior/fopa/
+backend/interior/IP-Adapter
 
 # Tensorboard / lightning logs
 lightning_logs/
