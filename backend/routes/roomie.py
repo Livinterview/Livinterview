@@ -42,8 +42,8 @@ async def roomie(
         if monthlyRangeMax is not None:
             monthlyRangeMax *= 10_000
 
-        print(f"[변환 후 단위] 보증금: {depositRangeMin} ~ {depositRangeMax}원")
-        print(f"[변환 후 단위] 월세: {monthlyRangeMin} ~ {monthlyRangeMax}원")
+        # print(f"[변환 후 단위] 보증금: {depositRangeMin} ~ {depositRangeMax}원")
+        # print(f"[변환 후 단위] 월세: {monthlyRangeMin} ~ {monthlyRangeMax}원")
         
         params = {
             "contract_types": tuple(contractType),
@@ -89,16 +89,17 @@ async def roomie(
         where_clause = " AND ".join(conditions)
 
         query = text(f"""
-            SELECT room_title, dong_name, price_type,
-                img_url_list, lat, lng, area_m2, deposit, monthly
+            SELECT room_title, dong_name, room_type, room_title, room_desc, 
+                price_type, img_url_list, lat, lng, floor, area_m2, 
+                deposit, monthly, maintenance_fee
             FROM Seoul_rooms
             WHERE {where_clause}
         """).bindparams(
             bindparam("contract_types", expanding=True)
         )
 
-        print("query:", str(query))
-        print("params:", params)
+        # print("query:", str(query))
+        # print("params:", params)
 
         df = pd.read_sql(sql=query, con=engine, params=params)
         result = df.to_dict(orient="records")
