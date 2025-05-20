@@ -27,6 +27,11 @@ def upload_image_to_github(local_image_path: Path) -> str:
     # Git add → commit → push
     subprocess.run(["git", "add", str(target_path)], cwd=repo_path, check=True)
     subprocess.run(["git", "commit", "-m", f"chore: upload {target_filename}"], cwd=repo_path, check=True)
+    
+    # 최신 커밋을 먼저 가져옴
+    subprocess.run(["git", "pull", "--rebase"], cwd=repo_path, check=True)
+
+    # push
     subprocess.run(["git", "push"], cwd=repo_path, check=True)
 
     # raw.githubusercontent.com URL 생성

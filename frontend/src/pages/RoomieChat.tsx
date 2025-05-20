@@ -5,6 +5,7 @@ import MessageInput from "../components/MessageInput";
 import TypingBubble from "../components/TypingBubble";
 import LoadingSpinner from "../components/LoadingSpinner";
 import RoomieHeader from "../components/RoomieHeader";
+import ImageModal from "../components/ImageModal";
 
 interface ChatMessage {
   type: "text" | "image";
@@ -26,6 +27,7 @@ export default function RoomieChat() {
     sessionId,
     originalImageId,
     isClean,
+    beforeUrl,
   } = state as {
     imageUrl: string;
     title?: string;
@@ -34,6 +36,7 @@ export default function RoomieChat() {
     sessionId: string;
     originalImageId?: string;
     isClean: boolean;
+    beforeUrl?: string;
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,6 +49,7 @@ export default function RoomieChat() {
   const didInit = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [showGeneratingText, setShowGeneratingText] = useState(false);
   const handleImageClick = (src: string) => {
     console.log("🖼️ 이미지 클릭됨:", src);
     setModalImageUrl(src);
@@ -69,7 +73,7 @@ export default function RoomieChat() {
 
     const rawSrc = isClean
       ? blankRoomUrl!
-      : `http://localhost:8000/data/uploads/${originalImageId}.jpg`;
+      : (beforeUrl ?? imageUrl);
     const resolvedSrc = rawSrc.startsWith("http")
       ? rawSrc
       : `http://localhost:8000${rawSrc}`;
@@ -77,7 +81,7 @@ export default function RoomieChat() {
     const preloadImg = new Image();
     preloadImg.src = resolvedSrc;
     preloadImg.onload = () => {
-      console.log("✅ 이미지 preload 완료", resolvedSrc);
+      console.log("이미지 preload 완료", resolvedSrc);
 
       // 첫 번째 메시지 추가 (방 이미지와 "좋아! 이제 방을 같이 꾸며보자 😊")
       setMessages([
@@ -174,20 +178,20 @@ export default function RoomieChat() {
     setIsSending(true);
     setTypingText("");
 
-    if (summaryText && ["응", "yes", "네"].includes(userMsg.toLowerCase())) {
-      // 1. 스트리밍 출력용 텍스트
+    if (summaryText && ["응", "yes", "네", "ㅇㅇ", "넵", "맞아", "좋아", "굿", "웅", "긔긔", "넹", "ㅇ", "ㄱㄱ"].includes(userMsg.toLowerCase())) {
       const message = "그럼 이대로 인테리어 해줄게! 잠시만 기다려줘.";
 
-      setTypingText(""); // 혹시 남은 스트리밍 있으면 초기화
+      setTypingText("");
       for (const ch of message) {
-        await new Promise((r) => setTimeout(r, 30)); // 부드러운 출력
+        await new Promise((r) => setTimeout(r, 30));
         setTypingText((prev) => prev + ch);
       }
 
       setMessages((prev) => [...prev, { type: "text", text: message, sender: "bot" }]);
-      setTypingText(""); // 스트리밍 종료
+      setTypingText("");
 
-      // 2. 바로 이미지 생성 + 이동
+      setShowGeneratingText(true);
+
       await generateImageAndNavigate(summaryText);
       setIsSending(false);
       return;
@@ -309,15 +313,17 @@ export default function RoomieChat() {
       const { image_url } = await fetch("http://localhost:8000/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, session_id: sessionId, image_id: passedImageId,}),
+        body: JSON.stringify({ prompt, session_id: sessionId, image_id: passedImageId, is_clean: isClean,}),
       }).then((r) => r.json());
 
+      const original = beforeUrl ?? imageUrl;
+
       localStorage.setItem("generatedImage", image_url);
-      localStorage.setItem("originalImage", blankRoomUrl ?? imageUrl);
+      localStorage.setItem("originalImage", original);
 
       navigate("/roomie/result", {
         state: {
-          originalImage: blankRoomUrl ?? imageUrl,
+          originalImage: original,
           generatedImage: image_url,
           title,
         },
@@ -332,20 +338,12 @@ export default function RoomieChat() {
 
     const last = messages[messages.length - 1];
     if (last?.sender === "bot" && last.text?.includes("좋아! 이대로 방을 꾸며볼게")) {
-      const run = async () => {
-        console.log("🚀 자동 생성 흐름 트리거");
-        await generateImageAndNavigate(summaryText);
-      };
-      run();
+      setShowGeneratingText(true); 
+      generateImageAndNavigate(summaryText); 
     }
 
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typingText]);
-
-
-  if (isAnalyzing) {
-    return <LoadingSpinner text="방을 불러오는 중이에요..." />;
-  }
 
     return (
       <div className="flex flex-col h-screen bg-gray-50">
@@ -354,6 +352,13 @@ export default function RoomieChat() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ChatMessageList messages={messages} onImageClick={handleImageClick}/>
           {typingText && <TypingBubble text={typingText} />}
+
+          {showGeneratingText && (
+            <p className="text-center text-gray-500 text-sm animate-pulse mb-4">
+              🛋️ 방을 꾸미는 중입니다... 잠시만 기다려주세요!
+            </p>
+          )}
+
           <div ref={bottomRef} />
         </div>
 
@@ -368,28 +373,12 @@ export default function RoomieChat() {
 
         {/* 추가: 이미지 모달 렌더링 */}
         {modalOpen && modalImageUrl && (
-          <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
-          onClick={() => setModalOpen(false)}
-        >
-          <div className="relative">
-            {/* 추가: 모달 닫기 버튼 */}
-            <button
-              className="absolute top-2 right-2 bg-white rounded-full p-1 text-black"
-              onClick={() => setModalOpen(false)}
-            >
-              X
-            </button>
-            <img
-              src={modalImageUrl}
-              alt="확대 이미지"
-              className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
-              onClick={(e) => e.stopPropagation()}
-              onError={() => console.error("모달 이미지 로드 실패:", modalImageUrl)}
-            />
-            </div>
-      </div>
-      )}
+          <ImageModal
+            imageUrl={modalImageUrl ?? ""}
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
       </div>
     );
   }

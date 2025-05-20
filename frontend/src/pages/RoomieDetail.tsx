@@ -2,13 +2,15 @@ import { Room } from "../types/room";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import MapPriceDisplay from "../components/MapPriceDisplay";
+import type { Swiper as SwiperClass } from 'swiper/types';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
 
 export default function RoomDetail({
   room,
@@ -21,9 +23,12 @@ export default function RoomDetail({
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const mainSwiperRef = useRef<SwiperClass | null>(null);
   const handleCloseImageModal = () => {
     setSelectedImage(null);
+    if (mainSwiperRef.current) {
+      mainSwiperRef.current.slideTo(currentIndex, 0);
+    }
   };
 
   const imgUrls: string[] = typeof room.img_url_list === "string"
@@ -64,8 +69,10 @@ export default function RoomDetail({
                 slidesPerView={1}
                 navigation
                 modules={[Navigation]}
-                onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+                onSlideChange={(swiper:SwiperClass) => setCurrentIndex(swiper.activeIndex)}
+                onSwiper={(swiper: SwiperClass) => (mainSwiperRef.current = swiper)}
                 className="w-full h-64"
+                initialSlide={currentIndex}
               >
                 {imgUrls.map((url, index) => (
                   <SwiperSlide key={index}>
@@ -96,9 +103,10 @@ export default function RoomDetail({
                 <Swiper
                   spaceBetween={10}
                   slidesPerView={1}
-                  initialSlide={imgUrls.indexOf(selectedImage)}
+                  initialSlide={currentIndex}
                   navigation
                   modules={[Navigation]}
+                  onSlideChange={(swiper:SwiperClass) => setCurrentIndex(swiper.activeIndex)}
                   className="w-full h-full"
                 >
                   {imgUrls.map((url, index) => (
@@ -116,7 +124,7 @@ export default function RoomDetail({
                     e.stopPropagation();
                     handleCloseImageModal();
                   }}
-                  className="absolute top-4 right-4 text-white text-2xl font-bold z-[100]"
+                  className="absolute top-4 right-4 text-white font-bold z-[100]"
                 >
                   X
                 </button>
@@ -153,7 +161,7 @@ export default function RoomDetail({
                   const { image_id } = await downloadRes.json();
 
               // 2) 워터마크 제거 요청 (실패해도 다음 단계로 진행)
-              let cleaned_url = imgUrls[currentIndex]; 
+              let wm_url = imgUrls[currentIndex];  
               try {
                 const wmRes = await fetch("http://localhost:8000/image-tools/remove-watermark", {
                   method: "POST",
@@ -166,7 +174,7 @@ export default function RoomDetail({
                 } else {
                   const wmData = await wmRes.json();
                   console.log("워터마크 제거 성공:", wmData);
-                  cleaned_url = wmData.cleaned_url;
+                  wm_url = wmData.wm_url;
                 }
               } catch (err) {
                 console.warn("워터마크 제거 중 예외 발생:", err);
@@ -186,14 +194,18 @@ export default function RoomDetail({
               );
               const structureData = await structureRes.json();
 
-
+              const backendBaseUrl = "http://localhost:8000";
               const timestamp = Date.now();
-              const cleanedUrlWithVersion = cleaned_url + `?v=${timestamp}`;
+              const beforeUrl =
+                wm_url.startsWith("/")           //  "/data/..." 형태면
+                  ? `${backendBaseUrl}${wm_url}?v=${timestamp}`  // → "http://localhost:8000/data/..."
+                  : `${wm_url}?v=${timestamp}`;  // 이미 http로 시작하면 그대로
+
 
               // 4) RoomieClean 화면으로 이동
               navigate("/roomie/clean", {
                 state: {
-                  imageUrl: cleanedUrlWithVersion,
+                  imageUrl: beforeUrl,
                   title: room.room_title || "방 정보",
                   sessionId,
                   imageId: image_id,

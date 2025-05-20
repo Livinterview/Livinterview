@@ -17,10 +17,11 @@ export default function RoomieHome() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [showDetail, setShowDetail] = useState(false)
   const [filters, setFilters] = useState(defaultFilters);
+  const [isMapLoading, setIsMapLoading] = useState(false);
 
   return (
     <div className="flex flex-col w-full h-screen relative">
-      {!showDetail && ( 
+      {!showDetail && !isMapLoading && ( 
         <FilterCard
           onFilterChange={(filters) => {
             console.log("필터 변경됨", filters);
@@ -37,6 +38,7 @@ export default function RoomieHome() {
             setSelectedRoom(room)
             setShowDetail(false)
           }}
+          onLoadingChange={setIsMapLoading}
         />
       </div>
         <BottomTabBar />
