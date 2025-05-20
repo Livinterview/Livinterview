@@ -28,7 +28,7 @@ export default function ReportView() {
   const userName = parsedUser?.name || "박병준";
   
 
-  // 📋 전체 리포트 데이터 추출
+  // 📋 전체 리포트 데이터 추출하기
   const data = location.state?.data;
 
   // 개별 변수로 분리
