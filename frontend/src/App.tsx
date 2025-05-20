@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SurveyForm from "./pages/SurveyForm";
@@ -11,10 +11,20 @@ import RoomieChat from "./pages/RoomieChat";
 import RoomieResult from "./pages/RoomieResult";
 import RoomieClean from "./pages/RoomieClean";
 
-function App() {
+// ✨ 조건부 Wrapper 컴포넌트 분리
+function AppWrapper() {
+  const location = useLocation();
+  const isReportView = location.pathname === "/report/view";
+
   return (
-  <div className="w-[430px] h-[932px] mx-auto overflow-hidden bg-white shadow-lg">
-    <BrowserRouter>
+    <div
+      className={
+        isReportView
+          ? "w-full min-h-[3500px] bg-white overflow-auto"
+      : "w-[430px] h-[932px] mx-auto overflow-hidden bg-white shadow-lg"
+      }
+      id="root"
+    >
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/home" element={<Home />} />
@@ -28,8 +38,15 @@ function App() {
         <Route path="/roomie/chat" element={<RoomieChat />} />
         <Route path="/roomie/result" element={<RoomieResult />} />
       </Routes>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppWrapper />
     </BrowserRouter>
-  </div>
   );
 }
 
