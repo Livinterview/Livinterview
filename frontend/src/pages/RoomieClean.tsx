@@ -173,7 +173,7 @@ export default function RoomieClean() {
                 <button
                   onClick={() => handleAskClean(true)}
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl"
+                  className="px-6 py-3 bg-zipup-600 text-white rounded-xl"
                 >
                   청소할래
                 </button>
@@ -199,7 +199,7 @@ export default function RoomieClean() {
                   onClick={() => toggleLabel(idx)}
                   className={`px-4 py-2 rounded-xl border ${
                     selectedIndices.includes(idx)
-                      ? "bg-blue-600 text-white"
+                      ? "bg-zipup-600 text-white"
                       : "bg-gray-200 text-gray-800"
                   }`}
                 >
@@ -216,7 +216,7 @@ export default function RoomieClean() {
               <button
                 onClick={handleStartCleaning}
                 disabled={loading}
-                className="mt-4 w-full py-3 bg-blue-600 text-white rounded-xl"
+                className="mt-4 w-full py-3 bg-zipup-600 text-white rounded-xl"
               >
                 청소 시작
               </button>
