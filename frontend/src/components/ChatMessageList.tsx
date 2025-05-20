@@ -14,7 +14,7 @@ interface ChatMessage {
               <img src={msg.src} alt="매물" className="rounded-lg shadow w-64 h-40 object-cover" onClick={() => msg.src && onImageClick?.(msg.src)} />
             ) : (
               <div className={`p-3 rounded-2xl max-w-[70%] text-sm ${
-                msg.sender === "user" ? "bg-blue-500 text-white" : "bg-white text-gray-800 border"
+                msg.sender === "user" ? "bg-zipup-600 text-white" : "bg-white text-gray-800 border"
               }`}>
                 {msg.text}
               </div>
