@@ -47,9 +47,12 @@ const subCategoryToFile: Record<string, string> = {
   PC방: "pcroom",
   영화관: "movietheater",
   문화생활공간: "cultural-life",
+  //운동
+  헬스장: "healthcenter",
+  공공체육시설: "publicworkoutcenter",
   //안전
   경찰: "police",
-  소방서: "firefight",
+  소방: "firefight",
   //녹지
   공원: "park",
   산: "mountain",
@@ -62,7 +65,7 @@ const subCategoryToFile: Record<string, string> = {
 const getImagePath = (main: string, sub: string): string => {
   const folder = mainCategoryToFolder[main] || "default_folder";
   const file = subCategoryToFile[sub] || "default";
-  return `/icons/report/${folder}/${file}.svg`;
+  return `/icons/report/${folder}/${file}.png`;
 };
 
 

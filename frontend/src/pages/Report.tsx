@@ -76,7 +76,7 @@ export default function Report() {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  // ✅ state가 없으면 dummyData 사용
+  // state가 없으면 dummyData 사용
   const data = state?.data || dummyData;
   const recommended: { name: string; location: string; description: string[] }[] = data?.recommended || [];
 
