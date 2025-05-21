@@ -13,11 +13,13 @@ export function useKakaoMap(
   rooms: Room[],
   onPinClick: (room: Room) => void,
   navigate: any,
-  onClusterClick?: (rooms: Room[]) => void
+  onClusterClick?: (rooms: Room[]) => void,
+  selectedRoom?: Room | null,
 ) {
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const focusMarkerRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
 
   // 지도 초기화
@@ -142,6 +144,86 @@ export function useKakaoMap(
 
     setLoading(false);
   }, [rooms]);
+
+  //디테일 모달(화면 70%) 시 위에 뜨는 지도 중심(화면 30%) 좌표
+  useEffect(() => {
+    if (!selectedRoom || !mapInstanceRef.current || !window.kakao) return;
+
+    const map = mapInstanceRef.current;
+    const latLng = new window.kakao.maps.LatLng(selectedRoom.lat, selectedRoom.lng);
+
+    // 지도 중심을 모달 위로 조정
+    const projection = map.getProjection();
+    const point = projection.pointFromCoords(latLng);
+    point.y += 270;
+    const adjustedLatLng = projection.coordsFromPoint(point);
+    map.panTo(adjustedLatLng);
+
+    // 기존 focus 마커 제거
+    if (focusMarkerRef.current) {
+      focusMarkerRef.current.setMap(null);
+      focusMarkerRef.current = null;
+    }
+
+const markerSvg = `
+  <svg width="28" height="42" viewBox="0 0 40 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 0C9 0 0 9 0 20c0 11 20 40 20 40s20-29 20-40C40 9 31 0 20 0z" fill="#433CFF"/>
+    <circle cx="20" cy="20" r="7" fill="white"/>
+  </svg>
+`;
+const svgBlob = new Blob([markerSvg], { type: "image/svg+xml;charset=utf-8" });
+const markerUrl = URL.createObjectURL(svgBlob);
+
+const imageSize = new window.kakao.maps.Size(28, 42);
+const markerImage = new window.kakao.maps.MarkerImage(markerUrl, imageSize);
+
+// 기존 focusMarker 제거
+if (focusMarkerRef.current) {
+  focusMarkerRef.current.setMap(null);
+  focusMarkerRef.current = null;
+}
+
+// 새 focusMarker 생성
+const focusMarker = new window.kakao.maps.Marker({
+  position: latLng,
+  image: markerImage,
+  zIndex: 10,
+});
+focusMarker.setMap(map);
+focusMarkerRef.current = focusMarker;
+
+  }, [selectedRoom]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const clusterer = clustererRef.current;
+    if (!map || !clusterer) return;
+
+    // RoomDetail이 열리면 클러스터 마커 제거
+    if (selectedRoom) {
+      clusterer.clear();
+      return;
+    }
+
+    // RoomDetail이 닫히면 클러스터 마커 다시 추가
+    if (markersRef.current.length > 0) {
+      const currentLevel = map.getLevel();
+      const newGridSize = calculateGridSize(currentLevel);
+      clusterer.setGridSize(newGridSize);
+
+      if (currentLevel <= 10) {
+        clusterer.addMarkers(markersRef.current);
+      } else {
+        markersRef.current.forEach((marker) => marker.setMap(map));
+      }
+    }
+    //RoomDetail 마커와 클러스터러 동시 구현 방지
+    if (!selectedRoom && focusMarkerRef.current) {
+    focusMarkerRef.current.setMap(null);
+    focusMarkerRef.current = null;
+  }
+  }, [selectedRoom]);
+
 
   return { loading };
 }
