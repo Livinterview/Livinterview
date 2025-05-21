@@ -24,6 +24,7 @@ export default function RoomDetail({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const mainSwiperRef = useRef<SwiperClass | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const handleCloseImageModal = () => {
     setSelectedImage(null);
     if (mainSwiperRef.current) {
@@ -36,13 +37,25 @@ export default function RoomDetail({
     : room.img_url_list;
 
   return (
-    <motion.div
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="fixed bottom-0 inset-x-0 mx-auto z-50 w-full max-w-[430px] h-[98vh] bg-white flex flex-col overflow-hidden rounded-t-3xl shadow-xl"
-    >
+      <motion.div
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        onDragEnd={(e, info) => {
+          if (info.offset.y < -100) {
+            setExpanded(true);  // 확장
+          }
+          if (info.offset.y > 100) {
+            setExpanded(false); // 축소
+          }
+        }}
+        animate={{ y: expanded ? 0 : "0" }} // ← 기본 위치는 30vh 아래
+        initial={{ y: "30vh" }}               // ← 처음부터 70%만 보이도록 설정
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className={`fixed inset-x-0 bottom-0 z-50 w-full max-w-[430px] ${
+          expanded ? "h-screen" : "h-[65vh]"
+        } bg-white flex flex-col overflow-hidden rounded-t-3xl shadow-xl`}
+      >
+
       {loading ? (
         <div className="flex flex-col items-center justify-center flex-1 p-6">
           <LoadingSpinner text="방 구조를 분석 중입니다..." />
@@ -54,7 +67,13 @@ export default function RoomDetail({
           {/* 닫기 버튼 */}
           <div className="flex justify-end px-4 py-2">
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (expanded) {
+                  setExpanded(false); // 먼저 축소
+                } else {
+                  onClose(); // 닫기
+                }
+              }}
               className="text-sm text-gray-500 hover:underline"
             >
               X
@@ -124,7 +143,7 @@ export default function RoomDetail({
                     e.stopPropagation();
                     handleCloseImageModal();
                   }}
-                  className="absolute top-4 right-4 text-white font-bold z-[100]"
+                  className="absolute top-4 right-4 text-white text-2xl font-bold z-[100]"
                 >
                   X
                 </button>
@@ -135,7 +154,7 @@ export default function RoomDetail({
           {/* 상세 정보 */}
           <div className="flex-1 overflow-y-auto p-6 text-left space-y-4">
             <h2 className="text-2xl font-bold">{room.room_title}</h2>
-            <p className="text-gray-600">{room.dong_name}</p>
+            <p className="text-gray-600">{room.gu_name} {room.dong_name}</p>
             <p className="text-xl font-semibold text-blue-600">
               💰 <MapPriceDisplay
                 priceType={room.price_type}
@@ -143,8 +162,29 @@ export default function RoomDetail({
                 monthly={room.monthly}
               />
             </p>
-            <p className="text-sm text-gray-500">※ 본 정보는 예시.</p>
-
+            {/* 테이블 형식 상세 정보 */}
+            <table className="w-full mt-4 text-sm border border-gray-200">
+              <tbody>
+                <tr className="border-b">
+                  <th className="bg-gray-100 text-left px-3 py-2 w-32">방 유형</th>
+                  <td className="px-3 py-2">{room.room_type}</td>
+                </tr>
+                <tr className="border-b">
+                  <th className="bg-gray-100 text-left px-3 py-2">층수</th>
+                  <td className="px-3 py-2">{room.floor}</td>
+                </tr>
+                <tr className="border-b">
+                  <th className="bg-gray-100 text-left px-3 py-2">면적</th>
+                  <td className="px-3 py-2">
+                    {parseFloat(room.area_m2.toFixed(2))}㎡ / {Math.round(room.area_m2 / 3.3058)}평
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <th className="bg-gray-100 text-left px-3 py-2">관리비</th>
+                  <td className="px-3 py-2">{room.maintenance_fee ? `${room.maintenance_fee.toLocaleString()}원` : '없음'}</td>
+                </tr>
+              </tbody>
+            </table>
             <button
               onClick={async () => {
                 const sessionId = uuidv4();

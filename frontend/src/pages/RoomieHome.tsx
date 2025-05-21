@@ -1,6 +1,5 @@
 import { useState } from "react"
 import MapView from "../components/map/MapView"
-import RoomInfo from "../components/RoomInfo"
 import RoomDetail from "./RoomieDetail"
 import BottomTabBar from "../components/BottomTabBar"
 import FilterCard from "../components/FilterCard"
@@ -18,10 +17,11 @@ export default function RoomieHome() {
   const [showDetail, setShowDetail] = useState(false)
   const [filters, setFilters] = useState(defaultFilters);
   const [isMapLoading, setIsMapLoading] = useState(false);
+  const [clusterOpen, setClusterOpen] = useState(false)
 
   return (
     <div className="flex flex-col w-full h-screen relative">
-      {!showDetail && !isMapLoading && ( 
+      {!showDetail && !isMapLoading && !clusterOpen && ( 
         <FilterCard
           onFilterChange={(filters) => {
             console.log("필터 변경됨", filters);
@@ -34,23 +34,25 @@ export default function RoomieHome() {
       <div className="flex-1">
         <MapView
           filters={filters}
+          selectedRoom={selectedRoom}
           onPinClick={(room) => {
             setSelectedRoom(room)
-            setShowDetail(false)
+            setShowDetail(true)
           }}
           onLoadingChange={setIsMapLoading}
+          onClusterOpen={setClusterOpen}
         />
       </div>
         <BottomTabBar />
 
       {/* 요약 정보 모달 */}
-      {selectedRoom && !showDetail && (
+      {/* {selectedRoom && !showDetail && (
         <RoomInfo
           room={selectedRoom}
           onExpand={() => setShowDetail(true)}
           onClose={() => setSelectedRoom(null)}
         />
-      )}
+      )} */}
 
       {/* 전체 상세 모달 */}
       {selectedRoom && showDetail && (
