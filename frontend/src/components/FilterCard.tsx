@@ -3,25 +3,34 @@ import RangeSlider from "./RangeSlider"
 
 interface FilterCardProps {
   onFilterChange: (filters: any) => void
+  initialFilters?: {
+    contractType?: "월세" | "전세"
+    depositRange?: [number, number]
+    monthlyRange?: [number, number]
+    sizeOption?: string
+  }
 }
 
-export default function FilterCard({ onFilterChange }: FilterCardProps) {
-  const [contractType, setContractType] = useState<"월세" | "전세">("월세")
-  const [depositRange, setDepositRange] = useState<[number, number]>([0, 12000])
-  const [monthlyRange, setMonthlyRange] = useState<[number, number]>([0, 500])
-  const [sizeOption, setSizeOption] = useState<string>("전체")
+export default function FilterCard({ onFilterChange, initialFilters }: FilterCardProps) {
+const [contractType, setContractType] = useState<"월세" | "전세">(initialFilters?.contractType ?? "월세")
+const [depositRange, setDepositRange] = useState<[number, number]>(initialFilters?.depositRange ?? [0, 12000])
+const [monthlyRange, setMonthlyRange] = useState<[number, number]>(initialFilters?.monthlyRange ?? [0, 500])
+const [sizeOption, setSizeOption] = useState<string>(initialFilters?.sizeOption ?? "전체")
+
   const [isOpen, setIsOpen] = useState(true)
 
   // 계약 유형이 바뀔 때 depositRange, monthlyRange 초기화
-  useEffect(() => {
+useEffect(() => {
+  if (!initialFilters) {
     if (contractType === "월세") {
       setDepositRange([0, 12000])
       setMonthlyRange([0, 500])
     } else {
       setDepositRange([0, 100000])
-      setMonthlyRange([0, 0]) // 사용 안함
+      setMonthlyRange([0, 0])
     }
-  }, [contractType])
+  }
+}, [contractType])
 
   return (
     <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg p-4 w-[280px] sm:w-[300px] z-50">

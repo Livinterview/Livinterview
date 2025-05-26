@@ -1,4 +1,6 @@
 type PriceDisplayProps = {
+  roomId?: number
+  guName?: String
   dongName?: string
   roomType?: String
   roomTitle?: string
@@ -38,6 +40,11 @@ export default function PriceDisplay({
   floor, 
   areaM2, 
   maintenanceFee,
+  lat,
+  lng,
+  dongName,
+  guName,
+  roomId
  }: PriceDisplayProps) {
   return (
     <>
@@ -57,6 +64,11 @@ export default function PriceDisplay({
       {areaM2}
       {/* 관리비 */}
       {maintenanceFee}
+      {lat}
+      {lng}
+      {dongName}
+      {guName}
+      {roomId}
     </>
   );
 }

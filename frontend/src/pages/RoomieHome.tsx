@@ -5,11 +5,18 @@ import BottomTabBar from "../components/BottomTabBar"
 import FilterCard from "../components/FilterCard"
 import { Room } from "../types/room"
 
-const defaultFilters = {
-  contractType: "",                 // 전체
-  depositRange: [0, 120000000],     // 0 ~ 1억2천천
-  monthlyRange: [0, 5000009],        // 0 ~ 500만
-  sizeOption: "",                  // 전체
+interface Filters {
+  contractType?: "월세" | "전세" | ""  // ""도 허용하거나 undefined로
+  depositRange: [number, number]
+  monthlyRange: [number, number]
+  sizeOption?: string
+}
+
+const defaultFilters: Filters = {
+  contractType: "월세",  // 빈 문자열 대신 기본값 지정
+  depositRange: [0, 120000000],
+  monthlyRange: [0, 5000009],
+  sizeOption: "전체",
 }
 
 export default function RoomieHome() {
@@ -23,6 +30,7 @@ export default function RoomieHome() {
     <div className="flex flex-col w-full h-screen relative">
       {!showDetail && !isMapLoading && !clusterOpen && ( 
         <FilterCard
+          initialFilters={filters}
           onFilterChange={(filters) => {
             console.log("필터 변경됨", filters);
             setFilters(filters); // MapView에 전달할 값
