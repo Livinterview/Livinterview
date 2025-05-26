@@ -51,7 +51,7 @@ export default function RoomDetail({
         animate={{ y: expanded ? 0 : "0" }} // ← 기본 위치는 30vh 아래
         initial={{ y: "30vh" }}               // ← 처음부터 70%만 보이도록 설정
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className={`fixed inset-x-0 bottom-0 z-50 w-full max-w-[430px] ${
+        className={`fixed bottom-0 translate-x-1/2 z-50 w-full max-w-[430px] ${
           expanded ? "h-screen" : "h-[65vh]"
         } bg-white flex flex-col overflow-hidden rounded-t-3xl shadow-xl`}
       >

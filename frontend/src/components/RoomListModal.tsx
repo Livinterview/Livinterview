@@ -26,7 +26,7 @@ export default function RoomListModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center">
-      <div className="bg-white md:w-[80%] h-[90%] rounded-lg shadow-lg p-4 overflow-y-auto relative">
+      <div className="bg-white md:w-[430px] h-[90%] rounded-lg shadow-lg p-4 overflow-y-auto relative ">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">해당 위치의 매물</h3>
           <button
