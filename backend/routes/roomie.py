@@ -89,7 +89,7 @@ async def roomie(
         where_clause = " AND ".join(conditions)
 
         query = text(f"""
-            SELECT room_title, dong_name, room_type, room_title, room_desc, 
+            SELECT id, gu_name, room_title, dong_name, room_type, room_title, room_desc, 
                 price_type, img_url_list, lat, lng, floor, area_m2, 
                 deposit, monthly, maintenance_fee
             FROM Seoul_rooms
