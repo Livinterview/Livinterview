@@ -13,3 +13,13 @@ ZIPUP은 사용자의 라이프스타일에 맞춘 맞춤형 LLM 레포트를 �
 | :---: | :---: | :---: | :---: | :---: |
 | <img src="https://avatars.githubusercontent.com/u/129809238?v=4" width="180"> | <img src="https://avatars.githubusercontent.com/u/77188449?v=4" width="180"> | <img src="https://avatars.githubusercontent.com/u/139064340?v=4" width="180"> | <img src="https://avatars.githubusercontent.com/u/101628142?v=4" width="180"> | <img src="https://avatars.githubusercontent.com/u/192847666?v=4" width="180"> |
 | [@kwonyoun](https://github.com/kwonyoun) | [@alpacamale](https://github.com/alpacamale) | [@jinheesong](https://github.com/jinheesong) | [@yehjinjang](https://github.com/yehjinjang) | [@sooin1516717](https://github.com/sooin1516717) | 
+
+
+## Preview
+
+https://github.com/user-attachments/assets/197ff1d9-7530-46bc-a4cc-9bee3a006f55
+
+
+
+https://github.com/user-attachments/assets/b3b01502-086f-4955-975c-50da1f14dcb2
+
